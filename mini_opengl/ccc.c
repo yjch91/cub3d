@@ -19,11 +19,14 @@
 # define WIDTH COLS * TILE_SIZE
 # define HEIGHT ROWS * TILE_SIZE
 # define PI 3.1415926535
+# define P2 PI / 2
+# define P3 3 * PI / 2
+# define DR 0.0174533 // one degree in radians
 
 # define TO_COORD(X, Y) ((int)floor(Y) * WIDTH + (int)floor(X))
 
 double pdx, pdy, pa;
-
+int		linecolor = 0xFFFFFF;
 
 typedef struct	s_img
 {
@@ -62,7 +65,7 @@ void	draw_line(t_game *game, double x1, double y1, double x2, double y2)
 		deltaY /= step;
 		while (fabs(x2 - x1) > 0.01 || fabs(y2 - y1) > 0.01)
 		{
-			game->img.data[TO_COORD(x1, y1)] = 0x000000;
+			game->img.data[TO_COORD(x1, y1)] = linecolor;;
 			x1 += deltaX;
 			y1 += deltaY;
 		}
@@ -88,6 +91,136 @@ void 	draw_lines(t_game *game)
 		j++;
 	}
 	draw_line(game, 0, ROWS * TILE_SIZE - 1, WIDTH, ROWS * TILE_SIZE - 1);
+}
+
+double dist(double ax, double ay, double bx, double by, double ang)
+{
+	return (sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay)) );
+}
+
+void	draw_Ray(t_game *game)
+{
+	int	r, mx, my, mp, dof; double rx, ry, ra, xo, yo, disT;
+
+	ra = pa - DR * 30;
+	if (ra < 0)
+		ra += 2 * PI;
+	if (ra > 2 * PI)
+		ra -= 2 * PI;
+
+	for (r = 0; r < 60; r++)
+	{
+		// horizontal Line
+		dof = 0;
+		double disH = 1000000;
+	    double hx = game->playerx;
+	   	double hy = game->playery;
+		double aTan = -1 / tan(ra);
+		if (ra > PI)
+		{
+			ry = (((int)game->playery >> 6) << 6) - 0.0001;
+			rx = (game->playery - ry) * aTan + game->playerx;
+			yo = -64;
+			xo = -yo * aTan;
+		}
+		if (ra < PI)
+		{
+			ry = (((int)game->playery >> 6) << 6) + 64;
+			rx = (game->playery - ry) * aTan + game->playerx;
+			yo = 64;
+			xo = -yo * aTan;
+		}
+		if (ra == 0 || ra == PI)
+		{
+			rx = game->playerx;
+			ry = game->playery;;
+			dof = 8;
+		}
+		while (dof < 8)
+		{
+			mx = ((int)(rx) >> 6);
+			my = ((int)(ry) >> 6);
+			mp = my * 8 + mx;
+			if (mp > 0 && mp < 8 * 8 && game->map[my][mx] == 1)
+			{
+				hx = rx;
+				hy = ry;
+				disH = dist(game->playerx, game->playery, hx, hy, ra);
+				dof = 8;
+			}
+			else
+			{
+				rx += xo;
+				ry += yo;
+				dof += 1;
+			}
+		}
+		//linecolor = 0x000000;
+		// draw_line(game, (int)game->playerx, (int)game->playery, (int)rx, (int)ry);
+		//linecolor = 0xFFFFFF;
+
+		// vertical line
+		dof = 0;
+		double disV = 1000000;
+	    double vx = game->playerx;
+	    double vy = game->playery;
+		double nTan = -tan(ra);
+		if (ra > P2 && ra < P3)
+		{
+			rx = (((int)game->playerx >> 6) << 6) - 0.0001;
+			ry = (game->playerx - rx) * nTan + game->playery;
+			xo = -64;
+			yo = -xo * nTan;
+		}
+		if (ra < P2 || ra > P3)
+		{
+			rx = (((int)game->playerx >> 6) << 6) + 64;
+			ry = (game->playerx - rx) * nTan + game->playery;
+			xo = 64;
+			yo = -xo * nTan;
+		}
+		if (ra == 0 || ra == PI)
+		{
+			rx = game->playerx;
+			ry = game->playery;;
+			dof = 8;
+		}
+		while (dof < 8)
+		{
+			mx = ((int)(rx) >> 6);
+			my = ((int)(ry) >> 6);
+			mp = my * 8 + mx;
+			if (mp > 0 && mp < 8 * 8 && game->map[my][mx] == 1)
+			{
+				dof = 8;
+				vx = rx;
+				vy = ry;
+				disV = dist(game->playerx, game->playery, vx, vy, ra);
+			}
+			else
+			{
+				rx += xo;
+				ry += yo;
+				dof += 1;
+			}
+		}
+		if (disV < disH)
+			rx = vx; ry = vy; disT = disV;
+		if (disH < disV)
+			rx = hx, ry = hy; disT = disH;
+	//	printf("rx = %.3f ry = %.3f mx = %d my = %d mp = %d\n", rx, ry, mx, my, mp);
+		draw_line(game, (int)game->playerx, (int)game->playery, (int)rx, (int)ry);
+
+	//	double lineH = 64 * 320 / disT;
+	//	if (lineH > 320)
+	//		lineH = 320;
+	
+		ra += DR;
+		if (ra < 0)
+			ra += 2 * PI;
+		if (ra > 2 * PI)
+			ra -= 2 * PI;
+	}
 }
 
 void	draw_point(t_game *game, int size)
@@ -205,16 +338,16 @@ int 	close(t_game *game)
 
 void	game_init(t_game *game)
 {
-	game->playerx = 80.0;
-	game->playery = 80.0;
+	game->playerx = 256.0;
+	game->playery = 256.0;
 
 	int map[ROWS][COLS] = {
 	{1, 1, 1, 1, 1, 1, 1, 1},
 	{1, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 1, 0, 1},
-	{1, 1, 1, 1, 0, 0, 0, 1},
+	{1, 0, 1, 0, 0, 1, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 0, 0, 0, 1, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 1},
+	{1, 0, 1, 0, 0, 1, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 1},
 	{1, 1, 1, 1, 1, 1, 1, 1},
 	};
@@ -241,7 +374,8 @@ int		main_loop(t_game *game)
 	draw_point(game, 10);
 //	draw_line(game, 90, 90, 100, 90);
 //	draw_line(game, 64, 64, 33, 33);
-	draw_line(game, (int)game->playerx, (int)game->playery, (int)(game->playerx + pdx * 5), (int)(game->playery + pdy * 5));
+//	draw_line(game, (int)game->playerx, (int)game->playery, (int)(game->playerx + pdx * 5), (int)(game->playery + pdy * 5));
+	draw_Ray(game);
 //	printf("afjlafkjal\n");
 //	printf("%f %f > %f %f\n", game->playerx, game->playery, game->playerx + pdx, game->playery + pdy);
 	mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
@@ -256,16 +390,15 @@ int		main(void)
 	pdx = cos(pa) * 5;
 	pdy = sin(pa) * 5;
 
-	printf("%f %f\n", pdx, pdy);
-
 	game_init(&game);
 	window_init(&game);
 	img_init(&game);
+
 //	mlx_hook(game.win, X_EVENT_KEY_PRESS, 0, &deal_key, &game);
 	mlx_hook(game.win, X_EVENT_KEY_EXIT, 0, &close, &game);
 
-	draw_point(&game, 10);
-	mlx_put_image_to_window(game.mlx, game.win, game.img.img, 0, 0);
+//	draw_point(&game, 10);
+//	mlx_put_image_to_window(game.mlx, game.win, game.img.img, 0, 0);
 
 	mlx_hook(game.win, X_EVENT_KEY_PRESS, 0, &deal_key, &game);
 
