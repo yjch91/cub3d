@@ -16,7 +16,7 @@
 # define TILE_SIZE 64
 # define ROWS 8
 # define COLS 8
-# define WIDTH COLS * TILE_SIZE
+# define WIDTH COLS * TILE_SIZE * 2
 # define HEIGHT ROWS * TILE_SIZE
 # define PI 3.1415926535
 # define P2 PI / 2
@@ -25,6 +25,8 @@
 
 # define TO_COORD(X, Y) ((int)floor(Y) * WIDTH + (int)floor(X))
 
+
+int	count = 0;
 double pdx, pdy, pa;
 int		linecolor = 0xFFFFFF;
 
@@ -87,10 +89,11 @@ void 	draw_lines(t_game *game)
 	j = 0;
 	while (j < ROWS)
 	{
-		draw_line(game, 0, j * TILE_SIZE, WIDTH, j * TILE_SIZE);
+		draw_line(game, 0, j * TILE_SIZE, WIDTH / 2, j * TILE_SIZE);
 		j++;
 	}
-	draw_line(game, 0, ROWS * TILE_SIZE - 1, WIDTH, ROWS * TILE_SIZE - 1);
+	draw_line(game, 0, ROWS * TILE_SIZE - 1, WIDTH / 2, ROWS * TILE_SIZE - 1);
+	// WIDTH / 2 <<<<<< !!!!!!!!!!!!!!!!!!!
 }
 
 double dist(double ax, double ay, double bx, double by, double ang)
@@ -204,17 +207,43 @@ void	draw_Ray(t_game *game)
 				dof += 1;
 			}
 		}
+
+		
 		if (disV < disH)
+		{
 			rx = vx; ry = vy; disT = disV;
+			linecolor = 0xFF0000;
+		}
 		if (disH < disV)
+		{
 			rx = hx, ry = hy; disT = disH;
+			linecolor = 0xAA0000;
+		}
 	//	printf("rx = %.3f ry = %.3f mx = %d my = %d mp = %d\n", rx, ry, mx, my, mp);
+
 		draw_line(game, (int)game->playerx, (int)game->playery, (int)rx, (int)ry);
 
-	//	double lineH = 64 * 320 / disT;
-	//	if (lineH > 320)
-	//		lineH = 320;
-	
+		double ca = pa - ra;
+		if (ca < 0)
+			ca += 2 * PI;
+		else if (ca > 2 * PI)
+			ca -= 2 * PI;
+		disT = disT * cos(ca);
+
+		double lineH = 64 * 420 / disT;
+		double lineO = 160 - (lineH / 2);
+		
+		if (lineH > 420)
+			lineH = 420;
+		if (lineO < 0)
+			lineO = 0;
+		//printf("lineH = %f lineO = %f %f\n", lineH, lineO, lineH + lineO);		
+		//printf("%d %d %d %d\n", r * 8 + 530, (int)lineO, r * 8 + 530, (int)(lineH + lineO));
+		for(int j = 0; j <= 8; j++)
+			draw_line(game, r * 8 + 530 + j, (int)(lineO), r * 8 + 530 + j, (int)(lineH + lineO));
+		//draw_line(game, 530, 0, (int)game->playerx, (int)game->playery);
+		linecolor = 0xFFFFFF;
+
 		ra += DR;
 		if (ra < 0)
 			ra += 2 * PI;
@@ -344,10 +373,10 @@ void	game_init(t_game *game)
 	int map[ROWS][COLS] = {
 	{1, 1, 1, 1, 1, 1, 1, 1},
 	{1, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 1, 0, 0, 1, 0, 1},
+	{1, 0, 1, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 1},
-	{1, 0, 1, 0, 0, 1, 0, 1},
+	{1, 0, 0, 0, 0, 0, 0, 1},
 	{1, 0, 0, 0, 0, 0, 0, 1},
 	{1, 1, 1, 1, 1, 1, 1, 1},
 	};
@@ -368,16 +397,13 @@ void	img_init(t_game *game)
 
 int		main_loop(t_game *game)
 {
+	for(int i = 0; i <= 1024 * 512; i++)
+		game->img.data[i] = 0x000000;
 
 	draw_rectangles(game);
 	draw_lines(game);
 	draw_point(game, 10);
-//	draw_line(game, 90, 90, 100, 90);
-//	draw_line(game, 64, 64, 33, 33);
-//	draw_line(game, (int)game->playerx, (int)game->playery, (int)(game->playerx + pdx * 5), (int)(game->playery + pdy * 5));
 	draw_Ray(game);
-//	printf("afjlafkjal\n");
-//	printf("%f %f > %f %f\n", game->playerx, game->playery, game->playerx + pdx, game->playery + pdy);
 	mlx_put_image_to_window(game->mlx, game->win, game->img.img, 0, 0);
 	return (0);
 }
