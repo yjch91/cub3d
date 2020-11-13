@@ -88,17 +88,26 @@ void	calc(t_info *info)
 		double cameraX = 2 * x / (double)width - 1;
 		double rayDirX = info->dirX + info->planeX * cameraX;
 		double rayDirY = info->dirY + info->planeY * cameraX;
-		
+		double rayDirD = sqrt((rayDirX * rayDirX) + (rayDirY * rayDirY));
+
 		int mapX = (int)info->posX;
 		int mapY = (int)info->posY;
+
 
 		//length of ray from current position to next x or y-side
 		double sideDistX;
 		double sideDistY;
 		
 		 //length of ray from one x or y-side to next x or y-side
-		double deltaDistX = fabs(1 / rayDirX);
-		double deltaDistY = fabs(1 / rayDirY);
+	
+		/*******************************************************/
+
+	 	//double deltaDistX = fabs(1 / rayDirX);
+		//double deltaDistY = fabs(1 / rayDirY);
+		double deltaDistX = fabs(rayDirD / rayDirX);	// my gong sik
+		double deltaDistY = fabs(rayDirD / rayDirY);
+
+		/******************************************************/
 		double perpWallDist;
 		
 		//what direction to step in x or y-direction (either +1 or -1)
@@ -165,15 +174,15 @@ void	calc(t_info *info)
 
 		int	color;
 		if (worldMap[mapX][mapY] == 1)
-			color = 0xFF0000;
+			color = 0xFF0000;		// red
 		else if (worldMap[mapX][mapY] == 2)
-			color = 0x00FF00;
+			color = 0x00FF00;		// green
 		else if (worldMap[mapX][mapY] == 3)
-			color = 0x0000FF;
+			color = 0x0000FF;		// blue
 		else if (worldMap[mapX][mapY] == 4)
-			color = 0xFFFFFF;
+			color = 0xFFFFFF;		// white
 		else
-			color = 0xFFFF00;
+			color = 0xFFFF00;		// yellow
 		
 		if (side == 1)
 			color = color / 2;
@@ -250,8 +259,8 @@ int	main(void)
 	info.dirY = 0;
 	info.planeX = 0;
 	info.planeY = 0.66;
-	info.moveSpeed = 0.05;
-	info.rotSpeed = 0.05;
+	info.moveSpeed = 0.1;
+	info.rotSpeed = 0.1;
 
 	info.img.img = mlx_new_image(info.mlx, width, height);
 	info.img.data = (int *)mlx_get_data_addr(info.img.img, &info.img.bpp, &info.img.size_l, &info.img.endian);
