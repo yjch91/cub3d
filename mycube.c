@@ -12,6 +12,7 @@
 #define mapHeight 24
 #define width 1024
 #define height 768
+#define PI 3.14159265359
 
 typedef struct	s_img
 {
@@ -28,12 +29,12 @@ typedef struct	s_img
 
 typedef struct	s_info
 {
-	double posX;
-	double posY;
-	double dirX;
-	double dirY;
-	double planeX;
-	double planeY;
+	double pos_x;
+	double pos_y;
+	double dir_x;
+	double dir_y;
+	double plane_x;
+	double plane_y;
 	void	*mlx;
 	void	*win;
 	t_img	img;
@@ -41,247 +42,273 @@ typedef struct	s_info
 	int		texture[8][texHeight * texWidth];
 	double	moveSpeed;
 	double	rotSpeed;
+	int		texnum;
+	int		tex_x;
+	int		tex_y;
+	int		color;
+
+	//calc
+	double	camera_x;
+	double	raydir_x;
+	double	raydir_y;
+	int		map_x;
+	int		map_y;
+	double	sidedist_x;
+	double	sidedist_y;
+	double	deltadist_x;
+	double	deltadist_y;
+	double	perpwalldist;
+	int		step_x;
+	int		step_y;
+	int		hit;
+	int		side;
+	int		lineheight;
+	int		drawstart;
+	int		drawend;
+	double	wall_x;
+	double	step;
+	double	texpos;
+
+	//floor
+	double	raydir_x0;
+	double	raydir_y0;
+	double	raydir_x1;
+	double	raydir_y1;
+	int		p;
+	double	posz;
+	double	rowdist;
+	double	fstep_x;
+	double	fstep_y;
+	double	floor_x;
+	double	floor_y;
+	int		cell_x;
+	int		cell_y;
+
 }				t_info;
 
 int	worldMap[mapWidth][mapHeight] =
 						{
-							{4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,7,7,7,7,7,7,7,7},
-							{4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,7},
-							{4,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7},
-							{4,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7},
-							{4,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,7,0,0,0,0,0,0,7},
-							{4,0,4,0,0,0,0,5,5,5,5,5,5,5,5,5,7,7,0,7,7,7,7,7},
-							{4,0,5,0,0,0,0,5,0,5,0,5,0,5,0,5,7,0,0,0,7,7,7,1},
-							{4,0,6,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,0,0,0,8},
-							{4,0,7,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,7,7,7,1},
-							{4,0,8,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,0,0,0,8},
-							{4,0,0,0,0,0,0,5,0,0,0,0,0,0,0,5,7,0,0,0,7,7,7,1},
-							{4,0,0,0,0,0,0,5,5,5,5,0,5,5,5,5,7,7,7,7,7,7,7,1},
-							{6,6,6,6,6,6,6,6,6,6,6,0,6,6,6,6,6,6,6,6,6,6,6,6},
-							{8,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4},
-							{6,6,6,6,6,6,0,6,6,6,6,0,6,6,6,6,6,6,6,6,6,6,6,6},
-							{4,4,4,4,4,4,0,4,4,4,6,0,6,2,2,2,2,2,2,2,3,3,3,3},
-							{4,0,0,0,0,0,0,0,0,4,6,0,6,2,0,0,0,0,0,2,0,0,0,2},
-							{4,0,0,0,0,0,0,0,0,0,0,0,6,2,0,0,5,0,0,2,0,0,0,2},
-							{4,0,0,0,0,0,0,0,0,4,6,0,6,2,0,0,0,0,0,2,2,0,2,2},
-							{4,0,6,0,6,0,0,0,0,4,6,0,0,0,0,0,5,0,0,0,0,0,0,2},
-							{4,0,0,5,0,0,0,0,0,4,6,0,6,2,0,0,0,0,0,2,2,0,2,2},
-							{4,0,6,0,6,0,0,0,0,4,6,0,6,2,0,0,5,0,0,2,0,0,0,2},
-							{4,0,0,0,0,0,0,0,0,4,6,0,6,2,0,0,0,0,0,2,0,0,0,2},
-							{4,4,4,4,4,4,4,4,4,4,1,1,1,2,2,2,2,2,2,3,3,3,3,3}
+							{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+							{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1},
+							{1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+							{1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+							{1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1},
+							{1,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1},
+							{1,0,1,0,0,0,0,1,0,1,0,1,0,1,0,1,1,0,0,0,1,1,1,1},
+							{1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1},
+							{1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1},
+							{1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1},
+							{1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1,1},
+							{1,0,0,0,0,0,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1},
+							{1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1},
+							{1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+							{1,1,1,1,1,1,1,0,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1},
+							{1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1},
+							{1,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,1,0,0,0,1},
+							{1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,1,0,0,0,1},
+							{1,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,1,1,0,1,1},
+							{1,0,1,0,1,0,0,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,1},
+							{1,0,0,1,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,1,1,0,1,1},
+							{1,0,1,0,1,0,0,0,0,1,1,0,1,1,0,0,1,0,0,1,0,0,0,1},
+							{1,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,1,0,0,0,1},
+							{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 						};
 
 void	draw(t_info *info)
 {
 	for (int y = 0; y < height; y++)
-	{
 		for (int x = 0; x < width; x++)
-		{
 			info->img.data[y * width + x] = info->buf[y][x];
-		}
-	}
 	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
 }
 
 void	floortest(t_info *info)
 {
-	for (int y = 0; y < height; y++)
+	int	x;
+	int	y;
+
+	y = 0;
+	while (y < height / 2)
 	{
-		double rayDirX0 = info->dirX - info->planeX;
-		double rayDirY0 = info->dirY - info->planeY;
-		double rayDirX1 = info->dirX + info->planeX;
-		double rayDirY1 = info->dirY + info->planeY;
-		int p = y - height / 2;
-		double posZ = 0.5 * height;
-		double rowDistance = posZ / p; // -1 ~ 1
+		info->raydir_x0 = info->dir_x - info->plane_x;
+		info->raydir_y0 = info->dir_y - info->plane_y;
+		info->raydir_x1 = info->dir_x + info->plane_x;
+		info->raydir_y1 = info->dir_y + info->plane_y;
 
-		double floorStepX = rowDistance * (rayDirX1 - rayDirX0) / width;
-		double floorStepY = rowDistance * (rayDirY1 - rayDirY0) / width;
+		info->p = y - height / 2;
+		info->posz = 0.5 * height;
+		info->rowdist = fabs(info->posz / info->p); // -1 ~ 1
 
-		double floorX = info->posX + rowDistance * rayDirX0;
-		double floorY = info->posY + rowDistance * rayDirY0;
+		info->fstep_x = info->rowdist * (info->raydir_x1 - info->raydir_x0) / width;
+		info->fstep_y = info->rowdist * (info->raydir_y1 - info->raydir_y0) / width;
 
-		for (int x = 0; x < width; x++)
+		info->floor_x = info->pos_x	+ info->rowdist * info->raydir_x0;
+		info->floor_y = info->pos_y + info->rowdist * info->raydir_y0;
+
+		x = 0;
+		while (x < width)
 		{
-			int cellX = (int)floorX;
-			int cellY = (int)floorY;
+			info->cell_x = (int)info->floor_x;
+			info->cell_y = (int)info->floor_y;
 
-			int tx = (int)(texWidth * (floorX - cellX)) & (texWidth - 1);
-			int ty = (int)(texHeight * (floorY - cellY)) & (texHeight - 1);
+			info->tex_x = (int)(texWidth * (info->floor_x - info->cell_x)) & (texWidth - 1);
+			info->tex_y = (int)(texHeight * (info->floor_y - info->cell_y)) & (texHeight - 1);
 			
-			floorX += floorStepX;
-			floorY += floorStepY;
+			info->floor_x += info->fstep_x;
+			info->floor_y += info->fstep_y;
 
-			int floorTexture = 0;
-			int ceilingTexture = 1;
+			info->texnum = 4;
+			info->color = info->texture[info->texnum][texWidth * info->tex_x + info->tex_y];
+			info->color = (info->color >> 1) & 8355711;
 
-			int color;
+			info->buf[height - y - 1][x] = info->color;
 
-			color = info->texture[floorTexture][texWidth * tx + ty];
-			color = (color >> 1) & 8355711;
+			info->texnum = 5;
+			info->color = info->texture[info->texnum][texWidth * info->tex_x + info->tex_y];
+			info->color = (info->color >> 1) & 8355711;
 
-			info->buf[y][x] = color;
-
-			color = info->texture[ceilingTexture][texWidth * tx + ty];
-			color = (color >> 1) & 8355711;
-
-			info->buf[height - y - 1][x] = color;
+			info->buf[y][x] = info->color;
+			x++;
 		}
+		y++;
 	}
 }
 
 void	calc(t_info *info)
 {
 	int	x;
+	int	y;
 
 	x = 0;
 	while (x < width)
 	{
-		double cameraX = 2 * x / (double)width - 1;
-		double rayDirX = info->dirX + info->planeX * cameraX;
-		double rayDirY = info->dirY + info->planeY * cameraX;
+		info->camera_x = 2 * x / (double)width - 1;
+		info->raydir_x = info->dir_x + info->plane_x * info->camera_x;
+		info->raydir_y = info->dir_y + info->plane_y * info->camera_x;
 		
-		int mapX = (int)info->posX;
-		int mapY = (int)info->posY;
+		info->map_x = (int)info->pos_x;
+		info->map_y = (int)info->pos_y;
 
 		//length of ray from current position to next x or y-side
-		double sideDistX;
-		double sideDistY;
 		
 		 //length of ray from one x or y-side to next x or y-side
-		double deltaDistX = fabs(1 / rayDirX);
-		double deltaDistY = fabs(1 / rayDirY);
-		double perpWallDist;
+		info->deltadist_x = fabs(1 / info->raydir_x);
+		info->deltadist_y = fabs(1 / info->raydir_y);
 		
 		//what direction to step in x or y-direction (either +1 or -1)
-		int stepX;
-		int stepY;
 		
-		int hit = 0; //was there a wall hit?
-		int side; //was a NS or a EW wall hit?
-
-		if (rayDirX < 0)
+		if (info->raydir_x < 0)
 		{
-			stepX = -1;
-			sideDistX = (info->posX - mapX) * deltaDistX;
+			info->step_x = -1;
+			info->sidedist_x = (info->pos_x - info->map_x) * info->deltadist_x;
 		}
 		else
 		{
-			stepX = 1;
-			sideDistX = (mapX + 1.0 - info->posX) * deltaDistX;
+			info->step_x = 1;
+			info->sidedist_x = (info->map_x + 1.0 - info->pos_x) * info->deltadist_x;
 		}
-		if (rayDirY < 0)
+		if (info->raydir_y < 0)
 		{
-			stepY = -1;
-			sideDistY = (info->posY - mapY) * deltaDistY;
+			info->step_y = -1;
+			info->sidedist_y = (info->pos_y - info->map_y) * info->deltadist_y;
 		}
 		else
 		{
-			stepY = 1;
-			sideDistY = (mapY + 1.0 - info->posY) * deltaDistY;
+			info->step_y = 1;
+			info->sidedist_y = (info->map_y + 1.0 - info->pos_y) * info->deltadist_y;
 		}
 
-		while (hit == 0)
+		info->hit = 0;
+
+		while (info->hit == 0)
 		{
 			//jump to next map square, OR in x-direction, OR in y-direction
-			if (sideDistX < sideDistY)
+			if (info->sidedist_x < info->sidedist_y)
 			{
-				sideDistX += deltaDistX;
-				mapX += stepX;
-				side = 0;
+				info->sidedist_x += info->deltadist_x;
+				info->map_x += info->step_x;
+				info->side = 0;
 			}
 			else
 			{
-				sideDistY += deltaDistY;
-				mapY += stepY;
-				side = 1;
+				info->sidedist_y += info->deltadist_y;
+				info->map_y += info->step_y;
+				info->side = 1;
 			}
 			//Check if ray has hit a wall
-			if (worldMap[mapX][mapY] > 0) hit = 1;
+			if (worldMap[info->map_x][info->map_y] > 0)
+				info->hit = 1;
 		}
-		if (side == 0)
-			perpWallDist = (mapX - info->posX + (1 - stepX) / 2) / rayDirX;
+		if (info->side == 0)
+			info->perpwalldist = (info->map_x - info->pos_x + (1 - info->step_x) / 2) / info->raydir_x;
 		else
-			perpWallDist = (mapY - info->posY + (1 - stepY) / 2) / rayDirY;
+			info->perpwalldist = (info->map_y - info->pos_y + (1 - info->step_y) / 2) / info->raydir_y;
 
 		//Calculate height of line to draw on screen
-		int lineHeight = (int)(height / perpWallDist);
+		info->lineheight = (int)(height / info->perpwalldist);
 
 		//calculate lowest and highest pixel to fill in current stripe
-		int drawStart = -lineHeight / 2 + height / 2;
-		if(drawStart < 0)
-			drawStart = 0;
-		int drawEnd = lineHeight / 2 + height / 2;
-		if(drawEnd >= height)
-			drawEnd = height - 1;
+		info->drawstart = -(info->lineheight) / 2 + height / 2;
+		if(info->drawstart < 0)
+			info->drawstart = 0;
+		info->drawend = info->lineheight / 2 + height / 2;
+		if(info->drawend >= height)
+			info->drawend = height - 1;
 
-		// texturing calculations
-		int texNum = worldMap[mapX][mapY] - 1;
-
-		// calculate value of wallX
-		double wallX;
-		if (side == 0)
-			wallX = info->posY + perpWallDist * rayDirY;
+		// calculate value of wall
+		if (info->side == 0)
+			info->wall_x = info->pos_y + info->perpwalldist * info->raydir_y;
 		else
-			wallX = info->posX + perpWallDist * rayDirX;
-		wallX -= floor(wallX); // -integer
+			info->wall_x = info->pos_x + info->perpwalldist * info->raydir_x;
+		info->wall_x -= floor(info->wall_x); // -integer
 
 		// x coordinate on the texture
-		int texX = (int)(wallX * (double)texWidth);
-		if (side == 0 && rayDirX > 0)
-			texX = texWidth - texX - 1;
-		if (side == 1 && rayDirY < 0)
-			texX = texWidth - texX - 1;
+		info->tex_x = (int)(info->wall_x * (double)texWidth);
+		if (info->side == 0 && info->raydir_x > 0)
+			info->tex_x = texWidth - info->tex_x - 1;
+		if (info->side == 1 && info->raydir_y < 0)
+			info->tex_x = texWidth - info->tex_x - 1;
 
-
-
-
-
+		if (info->side == 0 && info->raydir_x < 0)
+			info->texnum = 1;
+		if (info->side == 0 && info->raydir_x > 0)
+			info->texnum = 0;
+		if (info->side == 1 && info->raydir_y > 0)
+			info->texnum = 3;
+		if (info->side == 1 && info->raydir_y < 0)
+			info->texnum = 2;
 
 		// How much to increase the texture coordinate perscreen pixel
-		double step = 1.0 * texHeight / lineHeight;
+		info->step = 1.0 * texHeight / info->lineheight;
 		// Starting texture coordinate
-		double texPos = (drawStart - height / 2 + lineHeight / 2) * step;
-
-
-		double obj_y = 0;
-		if (drawStart == 0)
-			obj_y = lineHeight / 2 - height / 2;
-
-		for (int y = drawStart; y < drawEnd; y++)
-		{
-			// Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-			int texY = (int)texPos  & (texHeight - 1);
-			texPos += step;
+		info->texpos = (info->drawstart - height / 2 + info->lineheight / 2) * info->step;
 		
-		//	int texY = (int)(texHeight * obj_y / lineHeight);
-		//	obj_y++;
-			int color = info->texture[texNum][texHeight * texY + texX];
+		y = info->drawstart;
+		while (y < info->drawend)
+		{
+			info->tex_y = (int)(info->texpos) & (texHeight - 1);
+			info->texpos += info->step;
+		
+			info->color = info->texture[info->texnum][texHeight * info->tex_y + info->tex_x];
 			// make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
-			if (side == 1)
-				color = (color >> 1) & 8355711;
-			info->buf[y][x] = color;
+			if (info->side == 1)
+				info->color = (info->color >> 1) & 8355711;
+			info->buf[y][x] = info->color;
+			y++;
 		}
 		x++;
 	}
 }
-
 
 void	make_imagetexture(t_info *info, char *path, t_img *img, int *texture)
 {
 	img->img = mlx_xpm_file_to_image(info->mlx, path, &img->img_width, &img->img_height);
 	img->data = (int *)mlx_get_data_addr(img->img, &img->bpp, &img->size_l, &img->endian);
 	for (int y = 0; y < img->img_height; y++)
-	{
 		for(int x = 0; x < img->img_width; x++)
-		{
 			texture[img->img_width * y + x] = img->data[img->img_width * y + x];
-		}
-	}
 	mlx_destroy_image(info->mlx, img->img);
 }
-
-
 
 int	main_loop(t_info *info)
 {
@@ -301,40 +328,40 @@ int	key_press(int key, t_info *info)
 {
 	if (key == K_W)
 	{
-		if (!worldMap[(int)(info->posX + info->dirX * info->moveSpeed)][(int)(info->posY)])
-			info->posX += info->dirX * info->moveSpeed;
-		if (!worldMap[(int)(info->posX)][(int)(info->posY + info->dirY * info->moveSpeed)])
-			info->posY += info->dirY * info->moveSpeed;
+		if (!worldMap[(int)(info->pos_x + info->dir_x * info->moveSpeed)][(int)(info->pos_y)])
+			info->pos_x += info->dir_x * info->moveSpeed;
+		if (!worldMap[(int)(info->pos_x)][(int)(info->pos_y + info->dir_y * info->moveSpeed)])
+			info->pos_y += info->dir_y * info->moveSpeed;
 	}
 	//move backwards if no wall behind you
 	if (key == K_S)
 	{
-		if (!worldMap[(int)(info->posX - info->dirX * info->moveSpeed)][(int)(info->posY)])
-			info->posX -= info->dirX * info->moveSpeed;
-		if (!worldMap[(int)(info->posX)][(int)(info->posY - info->dirY * info->moveSpeed)])
-			info->posY -= info->dirY * info->moveSpeed;
+		if (!worldMap[(int)(info->pos_x - info->dir_x * info->moveSpeed)][(int)(info->pos_y)])
+			info->pos_x -= info->dir_x * info->moveSpeed;
+		if (!worldMap[(int)(info->pos_x)][(int)(info->pos_y - info->dir_y * info->moveSpeed)])
+			info->pos_y -= info->dir_y * info->moveSpeed;
 	}
 	//rotate to the right
 	if (key == K_D)
 	{
 		//both camera direction and camera plane must be rotated
-		double oldDirX = info->dirX;
-		info->dirX = info->dirX * cos(-info->rotSpeed) - info->dirY * sin(-info->rotSpeed);
-		info->dirY = oldDirX * sin(-info->rotSpeed) + info->dirY * cos(-info->rotSpeed);
-		double oldPlaneX = info->planeX;
-		info->planeX = info->planeX * cos(-info->rotSpeed) - info->planeY * sin(-info->rotSpeed);
-		info->planeY = oldPlaneX * sin(-info->rotSpeed) + info->planeY * cos(-info->rotSpeed);
+		double olddir_x = info->dir_x;
+		info->dir_x = info->dir_x * cos(-info->rotSpeed) - info->dir_y * sin(-info->rotSpeed);
+		info->dir_y = olddir_x * sin(-info->rotSpeed) + info->dir_y * cos(-info->rotSpeed);
+		double oldplane_x = info->plane_x;
+		info->plane_x = info->plane_x * cos(-info->rotSpeed) - info->plane_y * sin(-info->rotSpeed);
+		info->plane_y = oldplane_x * sin(-info->rotSpeed) + info->plane_y * cos(-info->rotSpeed);
 	}
 	//rotate to the left
 	if (key == K_A)
 	{
 		//both camera direction and camera plane must be rotated
-		double oldDirX = info->dirX;
-		info->dirX = info->dirX * cos(info->rotSpeed) - info->dirY * sin(info->rotSpeed);
-		info->dirY = oldDirX * sin(info->rotSpeed) + info->dirY * cos(info->rotSpeed);
-		double oldPlaneX = info->planeX;
-		info->planeX = info->planeX * cos(info->rotSpeed) - info->planeY * sin(info->rotSpeed);
-		info->planeY = oldPlaneX * sin(info->rotSpeed) + info->planeY * cos(info->rotSpeed);
+		double olddir_x = info->dir_x;
+		info->dir_x = info->dir_x * cos(info->rotSpeed) - info->dir_y * sin(info->rotSpeed);
+		info->dir_y = olddir_x * sin(info->rotSpeed) + info->dir_y * cos(info->rotSpeed);
+		double oldplane_x = info->plane_x;
+		info->plane_x = info->plane_x * cos(info->rotSpeed) - info->plane_y * sin(info->rotSpeed);
+		info->plane_y = oldplane_x * sin(info->rotSpeed) + info->plane_y * cos(info->rotSpeed);
 	}
 	if (key == K_ESC)
 		exit(0);
@@ -346,43 +373,33 @@ int	main(void)
 	t_info info;
 	info.mlx = mlx_init();
 
-	info.posX = 11.0; //22.0;
-	info.posY = 5.0; //11.5;
-	info.dirX = -1.0;
-	info.dirY = 0.0;
-	info.planeX = 0.0;
-	info.planeY = 0.66;
+	info.pos_x = 11.5;
+	info.pos_y = 5.0;
+	info.dir_x = -1.0;
+	info.dir_y = 0.0;
+	info.plane_x = 0.00;
+	info.plane_y = 0.66;
 
 	info.buf = (int **)malloc(sizeof(int *) * height);
 	for (int i = 0; i < height; i++)
-	{
 		info.buf[i] = (int *)malloc(sizeof(int) * width);
-	}
 
 	for (int i = 0; i < height; i++)
-	{
 		for (int j = 0; j < width; j++)
-		{
 			info.buf[i][j] = 0;
-		}
-	}
 
 	for (int i = 0; i < 8; i++)
-	{
 		for (int j = 0; j < texHeight * texWidth; j++)
-		{
 			info.texture[i][j] = 0;
-		}
-	}
 
 	make_imagetexture(&info, "textures/wall_n.xpm", &info.img, info.texture[0]);
 	make_imagetexture(&info, "textures/wall_s.xpm", &info.img, info.texture[1]);
 	make_imagetexture(&info, "textures/wall_e.xpm", &info.img, info.texture[2]);
 	make_imagetexture(&info, "textures/wall_w.xpm", &info.img, info.texture[3]);
-	make_imagetexture(&info, "textures/eagle.xpm", &info.img, info.texture[4]);
-	make_imagetexture(&info, "textures/mossy.xpm", &info.img, info.texture[5]);
-	make_imagetexture(&info, "textures/wood.xpm", &info.img, info.texture[6]);
-	make_imagetexture(&info, "textures/colorstone.xpm", &info.img, info.texture[7]);
+	make_imagetexture(&info, "textures/colorstone.xpm", &info.img, info.texture[4]);
+	make_imagetexture(&info, "textures/wood.xpm", &info.img, info.texture[5]);
+	make_imagetexture(&info, "textures/redbrick.xpm", &info.img, info.texture[6]);
+	make_imagetexture(&info, "textures/wood.xpm", &info.img, info.texture[7]);
 
 	info.moveSpeed = 0.05;
 	info.rotSpeed = 0.05;
