@@ -87,6 +87,11 @@ typedef struct	s_info
 	int		cell_x;
 	int		cell_y;
 
+	int		m_x1;
+	int		m_y1;
+	int		m_x2;
+	int		m_y2;
+
 }				t_info;
 
 int	worldMap[mapWidth][mapHeight] =
@@ -442,6 +447,36 @@ int button_redcross(t_info *info)
 	exit(0);
 }
 
+int	mouse_move(int x, int y, t_info *info)
+{
+	info->m_x2 = x;
+	info->m_y2 = y;
+
+	if (x >= 0 && y >= 0 && x < info->m_x1)
+	{
+		//both camera direction and camera plane must be rotated
+		double olddir_x = info->dir_x;
+		info->dir_x = info->dir_x * cos(info->rotSpeed) - info->dir_y * sin(info->rotSpeed);
+		info->dir_y = olddir_x * sin(info->rotSpeed) + info->dir_y * cos(info->rotSpeed);
+		double oldplane_x = info->plane_x;
+		info->plane_x = info->plane_x * cos(info->rotSpeed) - info->plane_y * sin(info->rotSpeed);
+		info->plane_y = oldplane_x * sin(info->rotSpeed) + info->plane_y * cos(info->rotSpeed);
+		info->m_x1 = x;
+	}
+	else if (x >= 0 && y >= 0 && x > info->m_x1)
+	{
+		//both camera direction and camera plane must be rotated
+		double olddir_x = info->dir_x;
+		info->dir_x = info->dir_x * cos(info->rotSpeed) + info->dir_y * sin(info->rotSpeed);
+		info->dir_y = -olddir_x * sin(info->rotSpeed) + info->dir_y * cos(info->rotSpeed);
+		double oldplane_x = info->plane_x;
+		info->plane_x = info->plane_x * cos(info->rotSpeed) + info->plane_y * sin(info->rotSpeed);
+		info->plane_y = -oldplane_x * sin(info->rotSpeed) + info->plane_y * cos(info->rotSpeed);
+		info->m_x1 = x;
+	}
+	return (0);
+}
+
 int	main(void)
 {
 	t_info info;
@@ -455,18 +490,28 @@ int	main(void)
 	info.plane_y = 0.66;
 
 	mlx_get_screen_size(info.mlx, &info.winsize_w, &info.winsize_h);
-//	printf("%d %d\n", info.winsize_w, info.winsize_h);
 
 	if (info.winsize_w > width)
 		info.winsize_w = width;
+	else
+		printf("width > maxsize so width = maxsize\n");
 	if (info.winsize_h > height)
 		info.winsize_h = height;
+	else
+		printf("height > maxsize so height = maxsize\n");
 	if (info.winsize_w < 200)
+	{
 		info.winsize_w = 200;
+		printf("width very little so width = 200\n");
+	}
 	if (info.winsize_h < 200)
+	{
 		info.winsize_h = 200;
-	
-//	printf("%d %d\n", info.winsize_w, info.winsize_h);
+		printf("height is very little so height = 200\n");
+	}
+
+	info.m_x1 = info.winsize_h / 2;
+	info.m_y1 = info.winsize_w / 2;
 
 	info.buf = (int **)malloc(sizeof(int *) * info.winsize_h);
 	for (int i = 0; i < info.winsize_h; i++)
@@ -500,5 +545,6 @@ int	main(void)
 	mlx_loop_hook(info.mlx, &main_loop, &info);
 	mlx_hook(info.win, X_EVENT_KEY_PRESS, 0, &key_press, &info);
 	mlx_hook(info.win, X_EVENT_KEY_EXIT, 0, &button_redcross, &info);
+	mlx_hook(info.win, 6, 0, &mouse_move, &info);
 	mlx_loop(info.mlx);
 }
