@@ -41,8 +41,8 @@ typedef struct	s_info
 	t_img	img;
 	int		**buf;
 	int		texture[8][texHeight * texWidth];
-	double	moveSpeed;
-	double	rotSpeed;
+	double	movespeed;
+	double	rotspeed;
 	int		texnum;
 	int		tex_x;
 	int		tex_y;
@@ -87,9 +87,7 @@ typedef struct	s_info
 	int		cell_x;
 	int		cell_y;
 
-	int		m_x1;
 	int		m_y1;
-	int		m_x2;
 	int		m_y2;
 
 }				t_info;
@@ -401,40 +399,40 @@ int	key_press(int key, t_info *info)
 {
 	if (key == K_W)
 	{
-		if (!worldMap[(int)(info->pos_x + info->dir_x * info->moveSpeed)][(int)(info->pos_y)])
-			info->pos_x += info->dir_x * info->moveSpeed;
-		if (!worldMap[(int)(info->pos_x)][(int)(info->pos_y + info->dir_y * info->moveSpeed)])
-			info->pos_y += info->dir_y * info->moveSpeed;
+		if (!worldMap[(int)(info->pos_x + info->dir_x * info->movespeed)][(int)(info->pos_y)])
+			info->pos_x += info->dir_x * info->movespeed;
+		if (!worldMap[(int)(info->pos_x)][(int)(info->pos_y + info->dir_y * info->movespeed)])
+			info->pos_y += info->dir_y * info->movespeed;
 	}
 	//move backwards if no wall behind you
 	if (key == K_S)
 	{
-		if (!worldMap[(int)(info->pos_x - info->dir_x * info->moveSpeed)][(int)(info->pos_y)])
-			info->pos_x -= info->dir_x * info->moveSpeed;
-		if (!worldMap[(int)(info->pos_x)][(int)(info->pos_y - info->dir_y * info->moveSpeed)])
-			info->pos_y -= info->dir_y * info->moveSpeed;
+		if (!worldMap[(int)(info->pos_x - info->dir_x * info->movespeed)][(int)(info->pos_y)])
+			info->pos_x -= info->dir_x * info->movespeed;
+		if (!worldMap[(int)(info->pos_x)][(int)(info->pos_y - info->dir_y * info->movespeed)])
+			info->pos_y -= info->dir_y * info->movespeed;
 	}
 	//rotate to the right
 	if (key == K_D)
 	{
 		//both camera direction and camera plane must be rotated
 		double olddir_x = info->dir_x;
-		info->dir_x = info->dir_x * cos(-info->rotSpeed) - info->dir_y * sin(-info->rotSpeed);
-		info->dir_y = olddir_x * sin(-info->rotSpeed) + info->dir_y * cos(-info->rotSpeed);
+		info->dir_x = info->dir_x * cos(-info->rotspeed) - info->dir_y * sin(-info->rotspeed);
+		info->dir_y = olddir_x * sin(-info->rotspeed) + info->dir_y * cos(-info->rotspeed);
 		double oldplane_x = info->plane_x;
-		info->plane_x = info->plane_x * cos(-info->rotSpeed) - info->plane_y * sin(-info->rotSpeed);
-		info->plane_y = oldplane_x * sin(-info->rotSpeed) + info->plane_y * cos(-info->rotSpeed);
+		info->plane_x = info->plane_x * cos(-info->rotspeed) - info->plane_y * sin(-info->rotspeed);
+		info->plane_y = oldplane_x * sin(-info->rotspeed) + info->plane_y * cos(-info->rotspeed);
 	}
 	//rotate to the left
 	if (key == K_A)
 	{
 		//both camera direction and camera plane must be rotated
 		double olddir_x = info->dir_x;
-		info->dir_x = info->dir_x * cos(info->rotSpeed) - info->dir_y * sin(info->rotSpeed);
-		info->dir_y = olddir_x * sin(info->rotSpeed) + info->dir_y * cos(info->rotSpeed);
+		info->dir_x = info->dir_x * cos(info->rotspeed) - info->dir_y * sin(info->rotspeed);
+		info->dir_y = olddir_x * sin(info->rotspeed) + info->dir_y * cos(info->rotspeed);
 		double oldplane_x = info->plane_x;
-		info->plane_x = info->plane_x * cos(info->rotSpeed) - info->plane_y * sin(info->rotSpeed);
-		info->plane_y = oldplane_x * sin(info->rotSpeed) + info->plane_y * cos(info->rotSpeed);
+		info->plane_x = info->plane_x * cos(info->rotspeed) - info->plane_y * sin(info->rotspeed);
+		info->plane_y = oldplane_x * sin(info->rotspeed) + info->plane_y * cos(info->rotspeed);
 	}
 	if (key == K_ESC)
 		exit(0);
@@ -447,32 +445,32 @@ int button_redcross(t_info *info)
 	exit(0);
 }
 
-int	mouse_move(int x, int y, t_info *info)
+int	mouse_move(int y, int x, t_info *info)
 {
-	info->m_x2 = x;
 	info->m_y2 = y;
 
-	if (x >= 0 && y >= 0 && x < info->m_x1)
+
+	if (x >= 0 && y >= 0 && x <= info->winsize_h && y <= info->winsize_w && y < info->m_y1)
 	{
 		//both camera direction and camera plane must be rotated
 		double olddir_x = info->dir_x;
-		info->dir_x = info->dir_x * cos(info->rotSpeed) - info->dir_y * sin(info->rotSpeed);
-		info->dir_y = olddir_x * sin(info->rotSpeed) + info->dir_y * cos(info->rotSpeed);
+		info->dir_x = info->dir_x * cos(info->rotspeed) - info->dir_y * sin(info->rotspeed);
+		info->dir_y = olddir_x * sin(info->rotspeed) + info->dir_y * cos(info->rotspeed);
 		double oldplane_x = info->plane_x;
-		info->plane_x = info->plane_x * cos(info->rotSpeed) - info->plane_y * sin(info->rotSpeed);
-		info->plane_y = oldplane_x * sin(info->rotSpeed) + info->plane_y * cos(info->rotSpeed);
-		info->m_x1 = x;
+		info->plane_x = info->plane_x * cos(info->rotspeed) - info->plane_y * sin(info->rotspeed);
+		info->plane_y = oldplane_x * sin(info->rotspeed) + info->plane_y * cos(info->rotspeed);
+		info->m_y1 = y;
 	}
-	else if (x >= 0 && y >= 0 && x > info->m_x1)
+	else if (x >= 0 && y >= 0 && x <= info->winsize_h && y <= info->winsize_w && y > info->m_y1)
 	{
 		//both camera direction and camera plane must be rotated
 		double olddir_x = info->dir_x;
-		info->dir_x = info->dir_x * cos(info->rotSpeed) + info->dir_y * sin(info->rotSpeed);
-		info->dir_y = -olddir_x * sin(info->rotSpeed) + info->dir_y * cos(info->rotSpeed);
+		info->dir_x = info->dir_x * cos(info->rotspeed) + info->dir_y * sin(info->rotspeed);
+		info->dir_y = -olddir_x * sin(info->rotspeed) + info->dir_y * cos(info->rotspeed);
 		double oldplane_x = info->plane_x;
-		info->plane_x = info->plane_x * cos(info->rotSpeed) + info->plane_y * sin(info->rotSpeed);
-		info->plane_y = -oldplane_x * sin(info->rotSpeed) + info->plane_y * cos(info->rotSpeed);
-		info->m_x1 = x;
+		info->plane_x = info->plane_x * cos(info->rotspeed) + info->plane_y * sin(info->rotspeed);
+		info->plane_y = -oldplane_x * sin(info->rotspeed) + info->plane_y * cos(info->rotspeed);
+		info->m_y1 = y;
 	}
 	return (0);
 }
@@ -510,8 +508,7 @@ int	main(void)
 		printf("height is very little so height = 200\n");
 	}
 
-	info.m_x1 = info.winsize_h / 2;
-	info.m_y1 = info.winsize_w / 2;
+	info.m_y1 = info.winsize_h / 2;
 
 	info.buf = (int **)malloc(sizeof(int *) * info.winsize_h);
 	for (int i = 0; i < info.winsize_h; i++)
@@ -534,8 +531,8 @@ int	main(void)
 	make_imagetexture(&info, "textures/bluestone.xpm", &info.img, info.texture[6]);
 	make_imagetexture(&info, "textures/eagle.xpm", &info.img, info.texture[7]);
 
-	info.moveSpeed = 0.05;
-	info.rotSpeed = 0.05;
+	info.movespeed = 0.05;
+	info.rotspeed = 0.05;
 	
 	info.win = mlx_new_window(info.mlx, info.winsize_w, info.winsize_h, "mlx");
 
