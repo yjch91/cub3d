@@ -1,10 +1,15 @@
 #include "minilibx_mms/mlx.h"
 #include "mini_opengl/mlx.h"
 #include "key_macos.h"
+#include "bitmap.h"
+
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 #define X_EVENT_KEY_PRESS	2
 #define X_EVENT_KEY_EXIT	17
 #define texWidth 64
@@ -14,6 +19,13 @@
 #define width 1024
 #define height 768
 #define PI 3.14159265359
+
+#define	uDiv 1
+#define	vDiv 1
+#define	vMove 0.0
+
+int		bmp = 1;
+t_bit	bit;
 
 typedef struct	s_img
 {
@@ -40,7 +52,7 @@ typedef struct	s_info
 	void	*win;
 	t_img	img;
 	int		**buf;
-	int		texture[8][texHeight * texWidth];
+	int		texture[10][texHeight * texWidth];
 	double	movespeed;
 	double	rotspeed;
 	int		texnum;
@@ -87,8 +99,26 @@ typedef struct	s_info
 	int		cell_x;
 	int		cell_y;
 
+	// mouse
 	int		m_y1;
 	int		m_y2;
+
+	// sprite
+	double	*zbuffer;
+	int		*sprite_order;
+	double	*sprite_dist;
+	double	sprite_x;
+	double	sprite_y;
+	double	invdet;
+	double	transform_x;
+	double	transform_y;
+	int		spritescreen_x;
+	int		sprite_h;
+	int		sprite_w;
+	int		drawstart_x;
+	int		drawstart_y;
+	int		drawend_x;
+	int		drawend_y;
 
 }				t_info;
 
@@ -101,9 +131,9 @@ int	worldMap[mapWidth][mapHeight] =
 							{1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1},
 							{1,0,1,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1},
 							{1,0,1,0,0,0,0,1,0,1,0,1,0,1,0,1,1,0,0,0,1,1,1,1},
-							{1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1},
-							{1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1},
-							{1,0,1,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1},
+							{1,0,1,2,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1},
+							{1,0,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1},
+							{1,0,1,2,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,1},
 							{1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1,1},
 							{1,0,0,0,0,0,0,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1},
 							{1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1},
@@ -119,6 +149,43 @@ int	worldMap[mapWidth][mapHeight] =
 							{1,0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,1,0,0,0,1},
 							{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 						};
+
+typedef struct s_sprite
+{
+	double	x;
+	double	y;
+	int		texture;
+}				t_sprite;
+
+t_sprite sprite[3];
+
+/*
+{
+	{9.5, 3.5, 8},
+	{8.5, 6.5, 7},
+	{7.5, 4.5, 9}	
+};*/
+
+void	sort_sprite(t_info *info, int amount)
+{
+	int		temp_o;
+	double	temp_d;
+	for (int i = 0; i < amount - 1; i++)
+	{
+		for (int j = 0; j < amount - 1 - i; j++)
+		{
+			if (info->sprite_dist[j] < info->sprite_dist[j + 1])
+			{
+				temp_d = info->sprite_dist[j];
+				info->sprite_dist[j] = info->sprite_dist[j + 1];
+				info->sprite_dist[j + 1] = temp_d;
+				temp_o = info->sprite_order[j];
+				info->sprite_order[j] = info->sprite_order[j + 1];
+				info->sprite_order[j + 1] = temp_o;
+			}
+		}
+	}
+}
 
 void	draw(t_info *info)
 {
@@ -248,7 +315,7 @@ void	calc(t_info *info)
 				info->side = 1;
 			}
 			//Check if ray has hit a wall
-			if (worldMap[info->map_x][info->map_y] > 0)
+			if (worldMap[info->map_x][info->map_y] == 1)
 				info->hit = 1;
 		}
 		if (info->side == 0)
@@ -308,6 +375,7 @@ void	calc(t_info *info)
 			info->buf[y][x] = info->color;
 			y++;
 		}
+		info->zbuffer[x] = info->perpwalldist;
 /*
 		//FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
 		double floorXWall, floorYWall; //x, y position of the floor texel at the bottom of the wall
@@ -369,6 +437,61 @@ void	calc(t_info *info)
 */
 		x++;
 	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		info->sprite_order[i] = i;
+		info->sprite_dist[i] = (info->pos_x - sprite[i].x) * (info->pos_x - sprite[i].x) + (info->pos_y - sprite[i].y) * (info->pos_y - sprite[i].y);
+	}
+	
+	sort_sprite(info, 3);
+
+	for (int i = 0; i < 3; i++)
+	{
+		info->sprite_x = sprite[info->sprite_order[i]].x - info->pos_x;
+		info->sprite_y = sprite[info->sprite_order[i]].y - info->pos_y;
+
+		info->invdet = 1.0 / (info->plane_x * info->dir_y - info->dir_x * info->plane_y);
+		info->transform_x = info->invdet * (info->dir_y * info->sprite_x - info->dir_x * info->sprite_y);
+		info->transform_y = info->invdet * (-info->plane_y * info->sprite_x + info->plane_x * info->sprite_y);
+
+		info->spritescreen_x = (int)((info->winsize_w / 2) * (1 + info->transform_x / info->transform_y));
+
+
+		int	vMoveScreen = (int)(vMove / info->transform_y);
+
+		info->sprite_h = abs((int)(info->winsize_h / info->transform_y)) / vDiv;	// !!!!!!!!!!!!!
+		info->drawstart_y = -info->sprite_h / 2 + info->winsize_h / 2 + vMoveScreen; // !!!!!!!!!!!!!!!!!
+		if (info->drawstart_y < 0)
+			info->drawstart_y = 0;
+		info->drawend_y = info->sprite_h / 2 + info->winsize_h / 2 + vMoveScreen;  //!!!!!!!!!!!!!!!!
+		if (info->drawend_y >= info->winsize_h)
+			info->drawend_y = info->winsize_h - 1;
+
+		info->sprite_w = abs((int)(info->winsize_h / info->transform_y)) / uDiv; // !!!!!!!!!!!!!
+		info->drawstart_x = -info->sprite_w / 2 + info->spritescreen_x;
+		if (info->drawstart_x < 0)
+			info->drawstart_x = 0;
+		info->drawend_x = info->sprite_w / 2 + info->spritescreen_x;
+		if (info->drawend_x >= info->winsize_w)
+			info->drawend_x = info->winsize_w - 1;
+
+		for (int x = info->drawstart_x ; x < info->drawend_x; x++)
+		{
+			info->tex_x = (int)(256 * (x - (info->sprite_w / 2 + info->spritescreen_x)) * texWidth / info->sprite_w) / 256;
+
+			if (info->transform_y > 0 && x > 0 && x < info->winsize_w && info->transform_y < info->zbuffer[x])
+			{
+				for (int y = info->drawstart_y; y < info->drawend_y; y++)
+				{
+					info->tex_y = ((int)(256 * ((y - vMoveScreen) - info->winsize_h / 2 + info->sprite_h / 2)) * texHeight / info->sprite_h) / 256;
+					info->color = info->texture[sprite[info->sprite_order[i]].texture][texWidth * info->tex_y + info->tex_x];
+					if ((info->color & 0x00FFFFFF) != 0)
+						info->buf[y][x] = info->color;
+				}
+			}
+		}
+	}
 }
 
 void	make_imagetexture(t_info *info, char *path, t_img *img, int *texture)
@@ -383,15 +506,24 @@ void	make_imagetexture(t_info *info, char *path, t_img *img, int *texture)
 
 int	main_loop(t_info *info)
 {
-	for (int i = 0; i < info->winsize_h; i++)
-	{
-		for (int j = 0; j < info->winsize_w; j++)
-			info->buf[i][j] = 0x000000;
-	}
+//	for (int i = 0; i < info->winsize_h; i++)
+//	{
+//		for (int j = 0; j < info->winsize_w; j++)
+//			info->buf[i][j] = 0x000000;
+//	}
 
 	floortest(info);
 	calc(info);
 	draw(info);
+
+	if (bmp == 1)
+	{
+		bmp = 0;
+		int fd = open("zza.bmp", O_WRONLY | O_CREAT, S_IRWXU);
+		write(fd, &bit, 54);
+		write(fd, info->img.data, bit.sizeimage);
+		close(fd);
+	}
 	return (0);
 }
 
@@ -518,9 +650,13 @@ int	main(void)
 		for (int j = 0; j < info.winsize_w; j++)
 			info.buf[i][j] = 0;
 
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 10; i++)
 		for (int j = 0; j < texHeight * texWidth; j++)
 			info.texture[i][j] = 0;
+
+	info.zbuffer = (double *)malloc(sizeof(double) * info.winsize_w);
+	info.sprite_order = (int *)malloc(sizeof(int) * 2);
+	info.sprite_dist = (double *)malloc(sizeof(double) * 2);
 
 	make_imagetexture(&info, "textures/wall_n.xpm", &info.img, info.texture[0]);
 	make_imagetexture(&info, "textures/wall_s.xpm", &info.img, info.texture[1]);
@@ -529,7 +665,25 @@ int	main(void)
 	make_imagetexture(&info, "textures/redbrick.xpm", &info.img, info.texture[4]);
 	make_imagetexture(&info, "textures/wood.xpm", &info.img, info.texture[5]);
 	make_imagetexture(&info, "textures/bluestone.xpm", &info.img, info.texture[6]);
-	make_imagetexture(&info, "textures/eagle.xpm", &info.img, info.texture[7]);
+	make_imagetexture(&info, "textures/greenlight.xpm", &info.img, info.texture[7]);
+	make_imagetexture(&info, "textures/barrel.xpm", &info.img, info.texture[8]);
+	make_imagetexture(&info, "textures/pillar.xpm", &info.img, info.texture[9]);
+
+	int snum = 0;
+
+	for (int i = 0; i < 24; i++)
+	{
+		for(int j = 0; j < 24; j++)
+		{
+			if (worldMap[i][j] == 2)
+			{
+				sprite[snum].x = i + 0.5;
+				sprite[snum].y = j + 0.5;
+				sprite[snum].texture = 8;
+				snum++;
+			}
+		}
+	}
 
 	info.movespeed = 0.05;
 	info.rotspeed = 0.05;
@@ -540,8 +694,38 @@ int	main(void)
 	info.img.data = (int *)mlx_get_data_addr(info.img.img, &info.img.bpp, &info.img.size_l, &info.img.endian);
 
 	mlx_loop_hook(info.mlx, &main_loop, &info);
+
+//	int	fd;
+
+//	fd = open("zza.bmp", O_WRONLY | O_CREAT, S_IRWXU);
+
+	//bit.ftype = 0x4d42;
+	bit.ftype1 = 'B';
+	bit.ftype2 = 'M';
+	bit.fsize = 54 + 4 * info.winsize_w * info.winsize_h;
+	bit.freserved1 = 0;
+	bit.freserved2 = 0;
+	bit.foffbits = 54;
+
+	bit.size = 40;
+	bit.bit_width = info.winsize_w;
+	bit.bit_height = -info.winsize_h;
+	bit.planes = 1;
+	bit.bitcount = 32;
+	bit.compression = 0;
+	bit.sizeimage = 4 * info.winsize_w * info.winsize_h;
+	bit.x_pelspermeter = info.winsize_w;
+	bit.y_pelspermeter = info.winsize_h;
+	bit.colorused = 0xFFFFFF;
+	bit.colorimportant = 0;
+
+//	write(fd, &bit, 54);
+//	write(fd, info.img.data, bit.sizeimage);
+//	close(fd);
+
 	mlx_hook(info.win, X_EVENT_KEY_PRESS, 0, &key_press, &info);
 	mlx_hook(info.win, X_EVENT_KEY_EXIT, 0, &button_redcross, &info);
 	mlx_hook(info.win, 6, 0, &mouse_move, &info);
+
 	mlx_loop(info.mlx);
 }
