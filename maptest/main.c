@@ -129,8 +129,11 @@ typedef struct	s_map
 	int		h;
 	char	*item;
 	char	*floor;
+	int		floor_color;
 	char	*ceil;
+	int		ceil_color;
 	char	*one;
+	char	start_dir;
 	int		**map;
 }				t_map;
 
@@ -143,19 +146,109 @@ void map_init(t_map *m)
 	m->size = 0;
 	m->item = 0;
 	m->floor = 0;
+	m->floor_color = -1;
 	m->ceil = 0;
+	m->ceil_color = -1;
 	m->w = 0;
 	m->h = 0;
-	//m->one = ft_strdup("");
+	m->start_dir = 0;
 }
 
 int	element_check(t_map *m)
 {
 	if (m->north == 0 || m->south == 0 || m->west == 0 || m->east == 0)
 	   return (0);
-	if (m->size == 0 || m->floor == 0 || m->ceil == 0)
+	if (m->size == 0 || m->floor == 0 || m->ceil == 0 || m->item == 0)
 		return (0);
 	return (1);	
+}
+
+int	element_size_check(t_map *m)
+{
+	if (ft_strlen(m->north) == 0 || ft_strlen(m->south) == 0 || ft_strlen(m->west) == 0 || ft_strlen(m->east) == 0)
+		return (0);
+	if (ft_strlen(m->size) == 0 || ft_strlen(m->floor)== 0 || ft_strlen(m->ceil) == 0 || ft_strlen(m->item) == 0)
+		return (0);
+	return (1);
+}
+
+int	map_line_check(t_map *m, char *line)
+{
+	int	i;
+
+	if (line[0] == '\0')
+		return (0);
+	i = 0;
+	while (line[i] != '\0')
+	{
+		if (line[i] == 'N' || line[i] == 'S' || line[i] == 'E' || line[i] == 'W')
+		{
+			if (m->start_dir == 0)
+			{
+				m->start_dir = line[i];
+				// start x , y setting 
+				// line[i] = 0;
+			}
+			else
+				return (0);
+		}
+		else if (!((line[i] >= '0' && line[i] <= '9') || line[i] == 32))
+			return (0);
+		i++;
+	}
+	return (1);
+}
+
+int	ft_isdigit(int c)
+{
+	if (c >= '0' && c <= '9')
+		return (1);
+	return (0);
+}
+
+int	floor_ceil_check(t_map *m, char *line, int type)
+{
+	int	i;
+	int	color;
+	int	n;
+
+	i = 0;
+	color = 0;
+	while ((line[i] >= '0' && line[i] <= '9') || line[i] == ',')
+	{
+		if (line[i] == ',' && (i == 0 || i == (ft_strlen(line) - 1) || ft_isdigit(line[i - 1]) == 0 || ft_isdigit(line[i + 1]) == 0))
+			return (0);
+		i++;
+	}
+	if (line[i] == '\0')
+	{
+		n = ft_atoi(line);
+		color = n * 256 * 256;
+		i = 0;
+		while (line[i] >= '0' && line[i] <= '9')
+			i++;
+		if (line[i] == '\0' || n > 255)
+			return (0);
+		i++;
+		n = ft_atoi(line + i);
+		color += n * 256;
+		while (line[i] >= '0' && line[i] <= '9')
+			i++;
+		if (line[i] == '\0' || n > 255)
+			return (0);
+		i++;
+		n = ft_atoi(line + i);
+		color += n;
+		while (line[i] >= '0' && line[i] <= '9')
+			i++;
+		if (line[i] != '\0' || n > 255)
+			return (0);
+		if (type == 0)
+			m->floor_color = color;
+		else if (type == 1)
+			m->ceil_color = color;
+	}
+	return (1);
 }
 
 int	main(int argc, char **argv)
@@ -167,40 +260,87 @@ int	main(int argc, char **argv)
 	int		x;
 	int		y;
 
+	map_init(&m);
 	if (argc == 1 || argc == 2)
 	{
 		fd = open(argv[1], O_RDONLY);
+		if (fd < 0)
+		{
+			printf("file name error\n");
+			return (0);
+		}
 		while (get_next_line(fd, &line) > 0)
 		{
-			if (ft_strnstr(line, "NO", 2) != 0)	
-				m.north = ft_strtrim(line, "NO ");
-			if (ft_strnstr(line, "SO", 2) != 0)
+			if (ft_strnstr(line, "NO", 2) == line && m.north == 0)	
+				m.north = ft_strtrim(line + 2, " ");
+			else if (ft_strnstr(line, "SO ", 3) == line && m.south == 0)
 				m.south = ft_strtrim(line, "SO ");
-			if (ft_strnstr(line, "WE", 2) != 0)
+			else if (ft_strnstr(line, "WE ", 3) == line && m.west == 0)
 				m.west = ft_strtrim(line, "WE ");
-			if (ft_strnstr(line, "EA", 2) != 0)
+			else if (ft_strnstr(line, "EA ", 3) == line && m.east == 0)
 				m.east = ft_strtrim(line, "EA ");
-			if (ft_strnstr(line, "S", 1) != 0)
+			else if (ft_strnstr(line, "S ", 2) == line && m.item == 0)
 				m.item = ft_strtrim(line, "S ");
-			if (ft_strnstr(line, "F", 1) != 0)
+			else if(ft_strnstr(line, "F ", 2) == line && m.floor == 0)
 				m.floor = ft_strtrim(line, "F ");
-			if (ft_strnstr(line, "C", 1) != 0)
+			else if (ft_strnstr(line, "C ", 2) == line && m.ceil == 0)
 				m.ceil = ft_strtrim(line, "C ");
-			if (ft_strnstr(line, "R", 1) != 0)
+			else if (ft_strnstr(line, "R", 2) == line && m.size == 0)
 				m.size = ft_strtrim(line, "R ");
+			else
+			{
+				if (line[0] != '\0')
+				{
+					write(1, "error line : ", 13);
+					write(1, line, ft_strlen(line));
+					write(1, "\n", 1);
+					return (0);
+				}
+			}
 			if (element_check(&m) == 1)
 				break ;
+		}
+		if (element_size_check(&m) == 0)
+		{
+			printf("error\n");
+			return (0);
+		}
+		if (floor_ceil_check(&m, m.floor, 0) == 0)
+		{
+			printf("error\n");
+			return (0);
+		}
+		if (floor_ceil_check(&m, m.ceil, 1) == 0)
+		{
+			printf("error\n");
+			return (0);
 		}
 		m.one = ft_strdup("");
 		while (get_next_line(fd, &line) > 0)
 		{
-			if (ft_strnstr(line, "1", 1)  != 0 || ft_strnstr(line, "0", 1) != 0)
+			if (map_line_check(&m, line) == 1)
 			{
 				y = ft_strlen(line);
 				temp = ft_strjoin(m.one, line);
 				free(m.one);
 				m.one = temp;
-			}	
+			}
+			else
+			{
+				if (line[0] != '\0')
+				{
+					write(1, "error line : ", 13);
+					write(1, line, ft_strlen(line));
+					write(1, "\n", 1);
+					free(m.one);
+					return (0);
+				}
+			}
+		}
+		if (m.start_dir == 0)
+		{
+			printf("start_dir error\n");
+			return (0);
 		}
 		x = ft_strlen(m.one) / y;
 		m.map = (int **)malloc(sizeof(int *) * x);
@@ -210,7 +350,10 @@ int	main(int argc, char **argv)
 		{
 			for (int j = 0; j < y; j++)
 			{
-				m.map[i][j] = *m.one++ - '0';
+				if (ft_isdigit(m.one[i * y + j]) == 1)
+					m.map[i][j] = m.one[i * y + j] - '0';
+				else
+					m.map[i][j] = m.one[i * y + j];
 			}	
 		}
 
@@ -221,6 +364,10 @@ int	main(int argc, char **argv)
 			printf("\n");
 		}
 	}
+	
+	printf("%d %x\n", m.floor_color, m.floor_color);
+	printf("%d %x\n", m.ceil_color, m.ceil_color);
+	
 	printf("%s\n", m.north);
 	printf("%s\n", m.south);
 	printf("%s\n", m.west);
@@ -234,6 +381,11 @@ int	main(int argc, char **argv)
 	while (m.size[i] >= '0' && m.size[i] <= '9')
 		i++;
 	m.h = ft_atoi(m.size + i);
+	i++;
+	while (m.size[i] >= '0' && m.size[i] <= '9')
+		i++;
+	if (m.size[i] != '\0' || m.w == 0 || m.h == 0)
+		printf("m.w or m.h is zero\n");
 	printf("w = %d h = %d\n", m.w, m.h);
 	return (0);
 }
