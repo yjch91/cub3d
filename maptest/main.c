@@ -462,48 +462,68 @@ int	cubfile_open(t_map *m, int argc, char **argv)
 	return (1);
 }
 
+void	cubfile_info_free(t_map *m, int n);
+
 int	info_check(t_map *m)
 {
 	if (info_empty_check(m) == 0 || xpmfile_check(m) == 0)
 	{
 		write(1, "one or more pieces of info are empty or not .xpm\n", 50);
+		cubfile_info_free(m, 0);
 		return (0);
 	}
 	if (floor_ceil_check(m, m->floor, 0) == 0)
 	{
 		write(1, "floor info error\n", 17);
+		cubfile_info_free(m, 0);
 		return (0);
 	}
 	if (floor_ceil_check(m, m->ceil, 1) == 0)
 	{
 		write(1, "ceil info error\n", 16);
+		cubfile_info_free(m, 0);
 		return (0);
+	}
+	return (1);
+}
+
+int	entering_info(char **info, char *data)
+{
+	*info = data;
+	if (*info == 0)
+	{
+		write(1, "malloc allocation fail\n", 23);
+		return (-1);
 	}
 	return (1);
 }
 
 int	gnl_info2(t_map *m, char *line)
 {
+	int	n;
+
 	if (ft_strnstr(line, "NO ", 3) == line && m->north == 0)
-		m->north = ft_strtrim(line + 2, " ");
+		n = entering_info(&m->north, ft_strtrim(line + 2, " "));
 	else if (ft_strnstr(line, "SO ", 3) == line && m->south == 0)
-		m->south = ft_strtrim(line + 2, " ");
+		n = entering_info(&m->south, ft_strtrim(line + 2, " "));
 	else if (ft_strnstr(line, "WE ", 3) == line && m->west == 0)
-		m->west = ft_strtrim(line + 2, " ");
+		n = entering_info(&m->west, ft_strtrim(line + 2, " "));
 	else if (ft_strnstr(line, "EA ", 3) == line && m->east == 0)
-		m->east = ft_strtrim(line + 2, " ");
+		n = entering_info(&m->east, ft_strtrim(line + 2, " "));
 	else if (ft_strnstr(line, "S ", 2) == line && m->item == 0)
-		m->item = ft_strtrim(line + 1, " ");
+		n = entering_info(&m->item, ft_strtrim(line + 1, " "));
 	else if (ft_strnstr(line, "F ", 2) == line && m->floor == 0)
-		m->floor = ft_strtrim(line + 1, " ");
+		n = entering_info(&m->floor, ft_strtrim(line + 1, " "));
 	else if (ft_strnstr(line, "C ", 2) == line && m->ceil == 0)
-		m->ceil = ft_strtrim(line + 1, " ");
+		n = entering_info(&m->ceil, ft_strtrim(line + 1, " "));
 	else if (ft_strnstr(line, "R ", 2) == line && m->size == 0)
-		m->size = ft_strtrim(line + 1, " ");
+		n = entering_info(&m->size, ft_strtrim(line + 1, " "));
 	else
 		return (0);
+	if (n == -1)
+		cubfile_info_free(m, 0);
 	free(line);
-	return (1);
+	return (n);
 }
 
 int	resolution_check(t_map *m)
@@ -522,64 +542,102 @@ int	resolution_check(t_map *m)
 	if (m->size[i] != '\0' || m->w == 0 || m->h == 0)
 	{
 		write(1, "resolution error\n", 17);
+		cubfile_info_free(m, 0);
 		return (0);
 	}
 	return (1);
 }
 
-int	gnl_info(t_map *m)
+void	cubfile_info_free(t_map *m, int n)
+{
+	if (m->north != 0)
+		free(m->north);
+	if (m->south != 0)
+		free(m->south);
+	if (m->west != 0)
+		free(m->west);
+	if (m->east != 0)
+		free(m->east);
+	if (m->item != 0)
+		free(m->item);
+	if (m->floor != 0)
+		free(m->floor);
+	if (m->ceil != 0)
+		free(m->ceil);
+	if (m->size != 0)
+		free(m->size);
+	if (n == -1)
+		write(1, "error : get_next_line return value -1\n", 38);
+}
+
+int	gnl_info(t_map *m, int n)
 {
 	char	*line;
+	int		r;
 
-	while (get_next_line(m->fd, &line) > 0)
+	while (info_null_check(m) == 0 && (n = get_next_line(m->fd, &line)) > 0)
 	{
-		if (gnl_info2(m, line) == 0)
+		if ((r = gnl_info2(m, line)) == 0)
 		{
 			if (line[0] != '\0')
 			{
 				write(1, line, ft_strlen(line));
 				write(1, " : this line error\n", 19);
-				free(line);
-				return (0);
+				cubfile_info_free(m, 0);
+				r = -1;
 			}
 			free(line);
 		}
-		if (info_null_check(m) == 1)
-			break ;
+		if (r == -1)
+			return (0);
 	}
-	if (info_check(m) == 0)
-		return (0);
-	if (resolution_check(m) == 0)
+	if (n == -1)
+		cubfile_info_free(m, -1);
+	if (n == -1 || info_check(m) == 0 || resolution_check(m) == 0)
 		return (0);
 	return (1);
+}
+
+void	cubfile_info_lst_free(t_map *m, int n)
+{
+	cubfile_info_free(m, n);
+	ft_lstclear(&m->lst);
 }
 
 int	gnl_map_info_push_list(t_map *m, char *line)
 {
+	t_list *temp;
+
 	if (g_map_empty == 1)
 	{
 		write(1, "map error : emptyline\n", 22);
+		cubfile_info_lst_free(m, 0);
 		free(line);
 		return (0);
 	}
 	g_map_empty = 0;
-	if (space_check(line) == 1)
-		g_map_empty = 1;
-	else
-		ft_lstadd_back(&m->lst, ft_lstnew(line));
+	if ((temp = ft_lstnew(line)) == 0)
+	{
+		write(1, "malloc allocation fail\n", 23);
+		cubfile_info_lst_free(m, 0);
+		free(line);
+		return (0);
+	}
+	ft_lstadd_back(&m->lst, temp);
 	return (1);
 }
 
-int	gnl_map_error_check(char *line)
+int	gnl_map_error_check(t_map *m, char *line)
 {
 	if ((space_check(line) == 1 || line[0] == '\0') && g_map_empty == 0)
 		g_map_empty = 1;
-	else if ((space_check(line) == 1 || line[0] == '\0') && g_map_empty == -1)
+	else if ((space_check(line) == 1 || line[0] == '\0') && g_map_empty != 0)
 		;
 	else if (line[0] != '\0')
 	{
 		write(1, line, ft_strlen(line));
 		write(1, " : this line map error\n", 23);
+		cubfile_info_lst_free(m, 0);
 		free(line);
 		return (0);
 	}
@@ -587,29 +645,29 @@ int	gnl_map_error_check(char *line)
 	return (1);
 }
 
-int	gnl_map_info(t_map *m)
+int	gnl_map_info(t_map *m, int n)
 {
 	char	*line;
 	int		x;
 
 	x = -1;
-	while (get_next_line(m->fd, &line) > 0)
+	while ((n = get_next_line(m->fd, &line)) > 0)
 	{
-		if (map_line_check(m, line, ++x) == 1)
+		if (space_check(line) == 0 && map_line_check(m, line, ++x) == 1)
 		{
 			if (gnl_map_info_push_list(m, line) == 0)
 				return (0);
 		}
-		else
-		{
-			x--;
-			if (gnl_map_error_check(line) == 0)
-				return (0);
-		}
+		else if (gnl_map_error_check(m, line) == 0)
+			return (0);
 	}
-	if (m->start_dir == 0)
-	{
+	if (n != -1 && m->start_dir == 0)
 		write(1, "no starting direction error\n", 28);
+	if (n == -1 || m->start_dir == 0)
+	{
+		cubfile_info_lst_free(m, 0);
+		if (n == -1)
+			write(1, "error : get_next_line return value -1\n", 38);
 		return (0);
 	}
 	return (1);
@@ -785,17 +843,20 @@ int	wall_eight_dir_check(t_map *m)
 
 int	wall_check(t_map *m)
 {
+	int	n;
+
+	n = 1;
 	if (wall_check_up(m) == 0)
-		return (0);
+		n = 0;
 	if (wall_check_down(m) == 0)
-		return (0);
+		n = 0;
 	if (wall_check_left(m) == 0)
-		return (0);
+		n = 0;
 	if (wall_check_right(m) == 0)
-		return (0);
+		n = 0;
 	if (wall_eight_dir_check(m) == 0)
-		return (0);
-	return (1);
+		n = 0;
+	return (n);
 }
 
 int	main(int argc, char **argv)
@@ -810,13 +871,14 @@ int	main(int argc, char **argv)
 	{
 		if (cubfile_open(&m, argc, argv) == 0)
 			return (0);
-		if (gnl_info(&m) == 0)
+		if (gnl_info(&m, 0) == 0)
 			return (0);
-		if (gnl_map_info(&m) == 0)
+		if (gnl_map_info(&m, 0) == 0)
 			return (0);
 		fill_map_array(&m);
 		if (wall_check(&m) == 0)
 			return (0);
+
 		printf(" ---------------\n");
 		printf("dir %c x = %d y = %d\n", m.start_dir, m.start_x, m.start_y);
 		for (i = 0; i < m.map_x; i++)
@@ -824,12 +886,13 @@ int	main(int argc, char **argv)
 			for (j = 0; j < m.map_y; j++)
 			{
 				if (m.map[i][j] == 32)
-					printf(" ");
+					printf("@");
 				else
 					printf("%d", m.map[i][j]);
 			}
 			printf("\n");
 		}
+		printf("map x = %d map y = %d\n", m.map_x, m.map_y);
 		printf("%d %x\n", m.floor_color, m.floor_color);
 		printf("%d %x\n", m.ceil_color, m.ceil_color);
 		printf("%s\n", m.north);
