@@ -3,6 +3,7 @@
 #include "gnl.h"
 
 int	g_map_emptyline;
+int	g_error_check;
 
 typedef struct	s_list
 {
@@ -209,6 +210,7 @@ int	ft_atoi(const char *str)
 
 typedef struct	s_map
 {
+	int		fd;
 	char	*north;
 	char	*south;
 	char	*west;
@@ -222,9 +224,12 @@ typedef struct	s_map
 	char	*ceil;
 	int		ceil_color;
 	char	start_dir;
+	t_list	*lst;
 	int		**map;
 	int		map_x;
 	int		map_y;
+	int		start_x;
+	int		start_y;
 }				t_map;
 
 void map_init(t_map *m)
@@ -242,9 +247,10 @@ void map_init(t_map *m)
 	m->w = 0;
 	m->h = 0;
 	m->start_dir = 0;
+	m->lst = 0;
 }
 
-int	element_check(t_map *m)
+int	info_null_check(t_map *m)
 {
 	if (m->north == 0 || m->south == 0 || m->west == 0 || m->east == 0)
 	   return (0);
@@ -253,7 +259,7 @@ int	element_check(t_map *m)
 	return (1);	
 }
 
-int	element_size_check(t_map *m)
+int	info_empty_check(t_map *m)
 {
 	if (ft_strlen(m->north) == 0 || ft_strlen(m->south) == 0 || ft_strlen(m->west) == 0 || ft_strlen(m->east) == 0)
 		return (0);
@@ -262,7 +268,7 @@ int	element_size_check(t_map *m)
 	return (1);
 }
 
-int	texture_check(t_map *m)
+int	xpmfile_check(t_map *m)
 {
 	char	*c;
 	
@@ -298,7 +304,6 @@ int	map_line_check(t_map *m, char *line)
 			if (m->start_dir == 0)
 			{
 				m->start_dir = line[i];
-				// start x , y setting 
 				line[i] = '0';
 			}
 			else
@@ -417,75 +422,119 @@ int	eight_dir_check(t_map *m, int x, int y)
 	return (1);
 }
 
+int	cubfile_open(t_map *m, int argc, char **argv)
+{
+	char	*c;
+
+	c = ft_strnstr(argv[1], ".cub", ft_strlen(argv[1]));
+	if (c == 0 || ft_strlen(c) != 4)
+	{
+		write(1, "first argument is no .cub file\n", 31);
+		return (0);
+	}
+	m->fd = open(argv[1], O_RDONLY);
+	if (m->fd < 0)
+	{
+		perror("cub file error ");
+		return (0);
+	}
+	if (argc == 3)
+	{
+		c = ft_strnstr(argv[2], "--save", 6);
+		if (c == 0 || ft_strlen(argv[2]) != 6)
+		{
+			write(1, "second argument is no \"--save\"\n", 31);
+			return (0);
+		}
+	}
+	return (1);
+}
+
+int	info_check(t_map *m)
+{
+	if (info_empty_check(m) == 0 || xpmfile_check(m) == 0)
+	{
+		write(1, "one or more pieces of information are empty or not .xpm\n", 56);
+		return (0);
+	}
+	if (floor_ceil_check(m, m->floor, 0) == 0)
+	{
+		write(1, "floor info error\n", 17);
+		return (0);
+	}
+	if (floor_ceil_check(m, m->ceil, 1) == 0)
+	{
+		write(1, "ceil info error\n", 16);
+		return (0);
+	}
+	return (1);
+}
+
+int	gnl_info2(t_map *m, char *line)
+{
+	if (ft_strnstr(line, "NO ", 3) == line && m->north == 0)	
+		m->north = ft_strtrim(line + 2, " ");
+	else if (ft_strnstr(line, "SO ", 3) == line && m->south == 0)
+		m->south = ft_strtrim(line + 2, " ");
+	else if (ft_strnstr(line, "WE ", 3) == line && m->west == 0)
+		m->west = ft_strtrim(line + 2, " ");
+	else if (ft_strnstr(line, "EA ", 3) == line && m->east == 0)
+		m->east = ft_strtrim(line + 2, " ");
+	else if (ft_strnstr(line, "S ", 2) == line && m->item == 0)
+		m->item = ft_strtrim(line + 1, " ");
+	else if(ft_strnstr(line, "F ", 2) == line && m->floor == 0)
+		m->floor = ft_strtrim(line + 1, " ");
+	else if (ft_strnstr(line, "C ", 2) == line && m->ceil == 0)
+		m->ceil = ft_strtrim(line + 1, " ");
+	else if (ft_strnstr(line, "R ", 2) == line && m->size == 0)
+		m->size = ft_strtrim(line + 1, " ");
+	else
+		return (0);
+	free(line);
+	return (1);
+}
+
+int	gnl_info(t_map *m)
+{
+	char	*line;
+
+	while (get_next_line(m->fd, &line) > 0)
+	{
+		if (gnl_info2(m, line) == 0)
+		{
+			if (line[0] != '\0')
+			{
+				write(1, line, ft_strlen(line));
+				write(1, " : this line error\n", 19);
+				free(line);
+				return (0);
+			}
+			free(line);
+		}
+		if (info_null_check(m) == 1)
+			break ;
+	}
+	if (info_check(m) == 0)
+		return (0);
+	return (1);
+}
+
 int	main(int argc, char **argv)
 {
-	int		fd;
-	char	*line;
 	t_map	m;
-	char	*temp;
-	t_list	*lst;
-
+	char	*line;
 
 	map_init(&m);
-	lst = 0;
 	g_map_emptyline = -1;
-	if (argc == 1 || argc == 2)
+	g_error_check = 0;
+	if (argc == 2 || argc == 3)
 	{
-		fd = open(argv[1], O_RDONLY);
-		if (fd < 0)
-		{
-			printf("file name error\n");
+		if (cubfile_open(&m, argc, argv) == 0)
 			return (0);
-		}
-		while (get_next_line(fd, &line) > 0)
-		{
-			if (ft_strnstr(line, "NO ", 3) == line && m.north == 0)	
-				m.north = ft_strtrim(line + 2, " ");
-			else if (ft_strnstr(line, "SO ", 3) == line && m.south == 0)
-				m.south = ft_strtrim(line + 2, " ");
-			else if (ft_strnstr(line, "WE ", 3) == line && m.west == 0)
-				m.west = ft_strtrim(line + 2, " ");
-			else if (ft_strnstr(line, "EA ", 3) == line && m.east == 0)
-				m.east = ft_strtrim(line + 2, " ");
-			else if (ft_strnstr(line, "S ", 2) == line && m.item == 0)
-				m.item = ft_strtrim(line + 1, " ");
-			else if(ft_strnstr(line, "F ", 2) == line && m.floor == 0)
-				m.floor = ft_strtrim(line + 1, " ");
-			else if (ft_strnstr(line, "C ", 2) == line && m.ceil == 0)
-				m.ceil = ft_strtrim(line + 1, " ");
-			else if (ft_strnstr(line, "R ", 2) == line && m.size == 0)
-				m.size = ft_strtrim(line + 1, " ");
-			else
-			{
-				if (line[0] != '\0')
-				{
-					write(1, "error line : ", 13);
-					write(1, line, ft_strlen(line));
-					write(1, "\n", 1);
-					return (0);
-				}
-			}
-			if (element_check(&m) == 1)
-				break ;
-		}
-		if (element_size_check(&m) == 0 || texture_check(&m) == 0)
-		{
-			printf("error1\n");
+		if (gnl_info(&m) == 0)
 			return (0);
-		}
-		if (floor_ceil_check(&m, m.floor, 0) == 0)
-		{
-			printf("error\n");
-			return (0);
-		}
-		if (floor_ceil_check(&m, m.ceil, 1) == 0)
-		{
-			printf("error\n");
-			return (0);
-		}
 
-
-		while (get_next_line(fd, &line) > 0)
+		while (get_next_line(m.fd, &line) > 0)
 		{
 			if (map_line_check(&m, line) == 1)
 			{
@@ -498,7 +547,7 @@ int	main(int argc, char **argv)
 				if (space_check(line) == 1)
 					g_map_emptyline = 1;
 				else
-					ft_lstadd_back(&lst, ft_lstnew(line));
+					ft_lstadd_back(&m.lst, ft_lstnew(line));
 			}
 			else
 			{
@@ -515,6 +564,7 @@ int	main(int argc, char **argv)
 				}
 			}
 		}
+
 		if (m.start_dir == 0)
 		{
 			printf("start_dir error\n");
@@ -523,18 +573,21 @@ int	main(int argc, char **argv)
 		else
 			printf("start dir %c\n", m.start_dir);
 
-		m.map_x = ft_lstsize(lst);
+		m.map_x = ft_lstsize(m.lst);
 		m.map = (int **)malloc(sizeof(int *) * m.map_x);
 		m.map_y = 0;
+
 		t_list *temp;
-		temp = lst;
+
+		temp = m.lst;
 		while (temp)
 		{
 			if (ft_strlen(temp->content) > m.map_y)
 				m.map_y = ft_strlen(temp->content);
 			temp = temp->next;
 		}
-		temp = lst;
+		temp = m.lst;
+
 		int	i;
 		int	j;
 		char	*s;
@@ -566,6 +619,7 @@ int	main(int argc, char **argv)
 				{
 					i = m.map_y;
 					printf("up error\n");
+					g_error_check = 1;
 					break ;
 				}
 			}
@@ -581,6 +635,7 @@ int	main(int argc, char **argv)
 				else if (m.map[j][i] == 0 || m.map[j][i] == 2)
 				{
 					i = m.map_y;
+					g_error_check = 1;
 					printf("down error\n");
 					break ;
 				}
@@ -597,6 +652,7 @@ int	main(int argc, char **argv)
 				else if (m.map[i][j] == 0 || m.map[i][j] == 2)
 				{
 					i = m.map_x;
+					g_error_check = 1;
 					printf("left error\n");
 					break ;
 				}
@@ -613,6 +669,7 @@ int	main(int argc, char **argv)
 				else if (m.map[i][j] == 0 || m.map[i][j] == 2)
 				{
 					i = m.map_x;
+					g_error_check = 1;
 					printf("right error\n");
 					break ;
 				}
@@ -633,6 +690,7 @@ int	main(int argc, char **argv)
 					{
 						printf("map error 8 check\n");
 						i = m.map_x;
+						g_error_check = 1;
 						break ;
 					}
 				}
@@ -640,6 +698,9 @@ int	main(int argc, char **argv)
 			}
 			i++;
 		}
+
+		if (g_error_check)
+			return (0);
 
 		printf(" ---------------\n");
 
@@ -654,29 +715,30 @@ int	main(int argc, char **argv)
 			}
 			printf("\n");
 		}
-	}
 	
-	printf("%d %x\n", m.floor_color, m.floor_color);
-	printf("%d %x\n", m.ceil_color, m.ceil_color);
 	
-	printf("%s\n", m.north);
-	printf("%s\n", m.south);
-	printf("%s\n", m.west);
-	printf("%s\n", m.east);
-	printf("%s\n", m.item);
-	printf("%s\n", m.floor);
-	printf("%s\n", m.ceil);
-	printf("%s\n", m.size);
-	m.w = ft_atoi(m.size);
-	int i = 0;
-	while (m.size[i] >= '0' && m.size[i] <= '9')
+		printf("%d %x\n", m.floor_color, m.floor_color);
+		printf("%d %x\n", m.ceil_color, m.ceil_color);
+	
+		printf("%s\n", m.north);
+		printf("%s\n", m.south);
+		printf("%s\n", m.west);
+		printf("%s\n", m.east);
+		printf("%s\n", m.item);
+		printf("%s\n", m.floor);
+		printf("%s\n", m.ceil);
+		printf("%s\n", m.size);
+		m.w = ft_atoi(m.size);
+		i = 0;
+		while (m.size[i] >= '0' && m.size[i] <= '9')
+			i++;
+		m.h = ft_atoi(m.size + i);
 		i++;
-	m.h = ft_atoi(m.size + i);
-	i++;
-	while (m.size[i] >= '0' && m.size[i] <= '9')
-		i++;
-	if (m.size[i] != '\0' || m.w == 0 || m.h == 0)
+		while (m.size[i] >= '0' && m.size[i] <= '9')
+			i++;
+		if (m.size[i] != '\0' || m.w == 0 || m.h == 0)
 		printf("m.w or m.h is zero\n");
-	printf("w = %d h = %d\n", m.w, m.h);
+		printf("w = %d h = %d\n", m.w, m.h);
+	}
 	return (0);
 }
