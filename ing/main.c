@@ -539,6 +539,17 @@ void	cubfile_info_free(t_map *m, int n)
 		write(1, "error : get_next_line return value -1\n", 38);
 }
 
+int	info_full_check(t_map *m)
+{
+	if (info_null_check(m) == 0)
+	{
+		cubfile_info_free(m, 0);
+		write(1, "cub file infomation error\n", 26);
+		return (0);
+	}
+	return (1);
+}
+
 int	gnl_info(t_map *m, int n)
 {
 	char	*line;
@@ -562,7 +573,7 @@ int	gnl_info(t_map *m, int n)
 	}
 	if (n == -1)
 		cubfile_info_free(m, -1);
-	if (n == -1 || info_check(m) == 0 || resolution_check(m) == 0)
+	if (n == -1 || info_full_check(m) == 0 || info_check(m) == 0 || resolution_check(m) == 0)
 		return (0);
 	return (1);
 }
