@@ -902,7 +902,7 @@ int	main(int argc, char **argv)
 	int		j;
 
 	map_init(&m);
-	m.bonus_on = 0;
+	m.bonus_on = 1;
 	g_map_empty = -1;
 	m.bitmap_check = 0;
 	if (argc == 2 || argc == 3)

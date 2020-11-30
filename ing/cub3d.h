@@ -2,12 +2,16 @@
 
 # define CUB3D_H
 
+# include "minilibx_mms/mlx.h"
+//# include "mini_opengl/mlx.h"
+# include "mlx.h"
+# include "key_macos.h"
+# include "bitmap.h"
 # include <stdlib.h>
 # include <unistd.h>
 # include <stdio.h>
 # include <fcntl.h>
 # include <math.h>
-
 
 # define	BUFFER_SIZE 100
 
@@ -20,6 +24,7 @@ typedef struct	s_list
 typedef struct	s_map
 {
 	int		fd;
+	int		bonus_on;
 	char	*north;
 	char	*south;
 	char	*west;

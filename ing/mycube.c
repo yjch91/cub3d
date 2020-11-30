@@ -1,10 +1,8 @@
-#include "minilibx_mms/mlx.h"
-#include "mini_opengl/mlx.h"
-#include "key_macos.h"
-#include "bitmap.h"
 #include "cub3d.h"
 
 #define X_EVENT_KEY_PRESS	2
+#define X_EVENT_KEY_RELEASE 3
+#define X_EVENT_MOTION_NOTIFY 6
 #define X_EVENT_KEY_EXIT	17
 #define texWidth 64
 #define texHeight 64
@@ -28,6 +26,7 @@ typedef struct	s_img
 
 typedef struct	s_info
 {
+	int		bonus_on;
 	double pos_x;
 	double pos_y;
 	double dir_x;
@@ -53,6 +52,11 @@ typedef struct	s_info
 	int		bitmap_check;
 	t_bit	bit;
 	t_map	m;
+	// key
+	int		flag_w;
+	int		flag_a;
+	int		flag_s;
+	int		flag_d;
 
 	//calc
 	double	camera_x;
@@ -164,7 +168,7 @@ void	draw(t_info *info)
 	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
 }
 
-void	floortest(t_info *info)
+void	floor_calc(t_info *info)
 {
 	int	x;
 	int	y;
@@ -412,17 +416,18 @@ void	make_imagetexture(t_info *info, char *path, t_img *img, int *texture)
 		all_free(info, &info->m);
 		exit(0);
 	}
-	img->data = (int *)mlx_get_data_addr(img->img, &img->bpp, &img->size_l, &img->endian);
-	y = 0;
-	while (y < img->img_height)
+	if((img->data = (int *)mlx_get_data_addr(img->img, &img->bpp, &img->size_l, &img->endian)) == 0)
 	{
-		x = 0;
-		while (x < img->img_width)
-		{
+		write(1, "error : mlx_get_data_addr result = NULL\n", 39);
+		all_free(info, &info->m);
+		exit(0);
+	}
+	y = -1;
+	while (++y < img->img_height)
+	{
+		x = -1;
+		while (++x < img->img_width)
 			texture[img->img_width * y + x] = img->data[img->img_width * y + x];
-			x++;
-		}
-		y++;
 	}
 	mlx_destroy_image(info->mlx, img->img);
 }
@@ -433,14 +438,46 @@ int	main_loop(t_info *info)
 {
 	int	fd;
 
-	floortest(info);
+	floor_calc(info);
 	calc(info);
 	draw(info);
+	if (info->flag_w == 1)
+	{
+		if (!info->map[(int)(info->pos_x + info->dir_x * info->movespeed)][(int)(info->pos_y)])
+			info->pos_x += info->dir_x * info->movespeed;
+		if (!info->map[(int)(info->pos_x)][(int)(info->pos_y + info->dir_y * info->movespeed)])
+			info->pos_y += info->dir_y * info->movespeed;
+	}
+	if (info->flag_s == 1)
+	{
+		if (!info->map[(int)(info->pos_x - info->dir_x * info->movespeed)][(int)(info->pos_y)])
+			info->pos_x -= info->dir_x * info->movespeed;
+		if (!info->map[(int)(info->pos_x)][(int)(info->pos_y - info->dir_y * info->movespeed)])
+			info->pos_y -= info->dir_y * info->movespeed;
+	}
+	if (info->flag_d == 1)
+	{
+		double olddir_x = info->dir_x;
+		info->dir_x = info->dir_x * cos(-info->rotspeed) - info->dir_y * sin(-info->rotspeed);
+		info->dir_y = olddir_x * sin(-info->rotspeed) + info->dir_y * cos(-info->rotspeed);
+		double oldplane_x = info->plane_x;
+		info->plane_x = info->plane_x * cos(-info->rotspeed) - info->plane_y * sin(-info->rotspeed);
+		info->plane_y = oldplane_x * sin(-info->rotspeed) + info->plane_y * cos(-info->rotspeed);
+	}
+	if (info->flag_a == 1)
+	{
+		double olddir_x = info->dir_x;
+		info->dir_x = info->dir_x * cos(info->rotspeed) - info->dir_y * sin(info->rotspeed);
+		info->dir_y = olddir_x * sin(info->rotspeed) + info->dir_y * cos(info->rotspeed);
+		double oldplane_x = info->plane_x;
+		info->plane_x = info->plane_x * cos(info->rotspeed) - info->plane_y * sin(info->rotspeed);
+		info->plane_y = oldplane_x * sin(info->rotspeed) + info->plane_y * cos(info->rotspeed);
+	}
 	if (info->bitmap_check == 1)
 	{
 		info->bitmap_check = 0;
 		bitmap_setting(info);
-		fd = open("cub3d.bmp", O_WRONLY | O_CREAT, S_IRWXU);
+		fd = open("cub3D.bmp", O_WRONLY | O_CREAT, S_IRWXU);
 		write(fd, &info->bit, 54);
 		write(fd, info->img.data, info->bit.sizeimage);
 		close(fd);
@@ -450,41 +487,32 @@ int	main_loop(t_info *info)
 	return (0);
 }
 
+int	key_release(int key, t_info *info)
+{
+	if (key == K_W)
+		info->flag_w = 0;
+	if (key == K_S)
+		info->flag_s = 0;
+	if (key == K_D)
+		info->flag_d = 0;
+	if (key == K_A)
+		info->flag_a = 0;
+	if (key == K_ESC)
+		;
+	return (0);
+}
+
 int	key_press(int key, t_info *info)
 {
 	if (key == K_W)
-	{
-		if (!info->map[(int)(info->pos_x + info->dir_x * info->movespeed)][(int)(info->pos_y)])
-			info->pos_x += info->dir_x * info->movespeed;
-		if (!info->map[(int)(info->pos_x)][(int)(info->pos_y + info->dir_y * info->movespeed)])
-			info->pos_y += info->dir_y * info->movespeed;
-	}
-	if (key == K_S)
-	{
-		if (!info->map[(int)(info->pos_x - info->dir_x * info->movespeed)][(int)(info->pos_y)])
-			info->pos_x -= info->dir_x * info->movespeed;
-		if (!info->map[(int)(info->pos_x)][(int)(info->pos_y - info->dir_y * info->movespeed)])
-			info->pos_y -= info->dir_y * info->movespeed;
-	}
-	if (key == K_D)
-	{
-		double olddir_x = info->dir_x;
-		info->dir_x = info->dir_x * cos(-info->rotspeed) - info->dir_y * sin(-info->rotspeed);
-		info->dir_y = olddir_x * sin(-info->rotspeed) + info->dir_y * cos(-info->rotspeed);
-		double oldplane_x = info->plane_x;
-		info->plane_x = info->plane_x * cos(-info->rotspeed) - info->plane_y * sin(-info->rotspeed);
-		info->plane_y = oldplane_x * sin(-info->rotspeed) + info->plane_y * cos(-info->rotspeed);
-	}
-	if (key == K_A)
-	{
-		double olddir_x = info->dir_x;
-		info->dir_x = info->dir_x * cos(info->rotspeed) - info->dir_y * sin(info->rotspeed);
-		info->dir_y = olddir_x * sin(info->rotspeed) + info->dir_y * cos(info->rotspeed);
-		double oldplane_x = info->plane_x;
-		info->plane_x = info->plane_x * cos(info->rotspeed) - info->plane_y * sin(info->rotspeed);
-		info->plane_y = oldplane_x * sin(info->rotspeed) + info->plane_y * cos(info->rotspeed);
-	}
-	if (key == K_ESC)
+		info->flag_w = 1;
+	else if (key == K_S)
+		info->flag_s = 1;
+	else if (key == K_D)
+		info->flag_d = 1;
+	else if (key == K_A)
+		info->flag_a = 1;
+	else if (key == K_ESC)
 	{
 		all_free(info, &info->m);
 		exit(0);
@@ -671,11 +699,21 @@ void	cub_play(t_map *m)
 	int	j;
 	int	snum;
 
+	info.flag_w = 0;
+	info.flag_a = 0;
+	info.flag_s = 0;
+	info.flag_d = 0;
+	info.bonus_on = m->bonus_on;
 	info.movespeed = 0.05;
-	info.rotspeed = 0.05;
-	info.mlx = mlx_init();
-	info.pos_x = m->start_x;
-	info.pos_y = m->start_y;
+	info.rotspeed = 0.025;
+	if ((info.mlx = mlx_init()) == 0)
+	{
+		write(1, "error : mlx_init result = NULL\n", 31);
+		map_array_free(m, m->map_x, 1);
+		return ;
+	}
+	info.pos_x = m->start_x + 0.5;
+	info.pos_y = m->start_y + 0.5;
 	dir_setting(&info, m);
 	info.map = m->map;
 	info.map_w = m->map_y;
@@ -741,8 +779,8 @@ void	cub_play(t_map *m)
 		make_imagetexture(&info, m->floor, &info.img, info.texture[4]);
 	if (info.ceil_color == -1)
 		make_imagetexture(&info, m->ceil, &info.img, info.texture[5]);
-	make_imagetexture(&info, "textures/greenlight.xpm", &info.img, info.texture[6]);
-	make_imagetexture(&info, "textures/barrel.xpm", &info.img, info.texture[7]);
+	make_imagetexture(&info, m->item, &info.img, info.texture[6]);
+	make_imagetexture(&info, "textures/greenlight.xpm", &info.img, info.texture[7]);
 	make_imagetexture(&info, "textures/pillar.xpm", &info.img, info.texture[8]);
 
 	snum = 0;
@@ -752,11 +790,11 @@ void	cub_play(t_map *m)
 		j = 0;
 		while (j < info.map_w)
 		{
-			if (info.map[i][j] == 2)
+			if (info.map[i][j] >= 2)
 			{
 				info.sprite[snum].x = i + 0.5;
 				info.sprite[snum].y = j + 0.5;
-				info.sprite[snum].texture = 7;
+				info.sprite[snum].texture = 4 + info.map[i][j];
 				snum++;
 			}
 			j++;
@@ -764,16 +802,32 @@ void	cub_play(t_map *m)
 		i++;
 	}
 	
-	info.win = mlx_new_window(info.mlx, info.winsize_w, info.winsize_h, "mlx");
-
-	info.img.img = mlx_new_image(info.mlx, info.winsize_w, info.winsize_h);
-	info.img.data = (int *)mlx_get_data_addr(info.img.img, &info.img.bpp, &info.img.size_l, &info.img.endian);
+	if ((info.win = mlx_new_window(info.mlx, info.winsize_w, info.winsize_h, "mlx")) == 0)
+	{
+		all_free(&info, m);
+		write(1, "error : mlx_new_window return = NULL\n", 37);
+		return ;
+	}
+	if ((info.img.img = mlx_new_image(info.mlx, info.winsize_w, info.winsize_h)) == 0)
+	{
+		all_free(&info, m);
+		write(1, "error : mlx_new_image return = NULL\n", 36);
+		return ;
+	}
+	if ((info.img.data = (int *)mlx_get_data_addr(info.img.img, &info.img.bpp, &info.img.size_l, &info.img.endian)) == 0)
+	{
+		all_free(&info, m);
+		write(1, "error : mlx_get_data_addr return = NULL\n", 40);
+		return ;
+	}
 
 	mlx_loop_hook(info.mlx, &main_loop, &info);
 
 	mlx_hook(info.win, X_EVENT_KEY_PRESS, 0, &key_press, &info);
+	mlx_hook(info.win, X_EVENT_KEY_RELEASE, 0, &key_release, &info);
 	mlx_hook(info.win, X_EVENT_KEY_EXIT, 0, &button_redcross, &info);
-	mlx_hook(info.win, 6, 0, &mouse_move, &info);
+	if (info.bonus_on == 1)
+		mlx_hook(info.win, X_EVENT_MOTION_NOTIFY, 0, &mouse_move, &info);
 
 	mlx_loop(info.mlx);
 }
