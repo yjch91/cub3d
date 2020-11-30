@@ -522,13 +522,13 @@ int	key_press(int key, t_info *info)
 		all_free(info, &info->m);
 		exit(0);
 	}
-	else if (key == K_T)
+	else if (key == K_T && info->bonus_on == 1)
 	{
 		info->pitch += 400 * info->movespeed;
 		if (info->pitch > 400)
 			info->pitch = 400;
 	}
-	else if (key == K_G)
+	else if (key == K_G && info->bonus_on == 1)
 	{
 		info->pitch -= 400 * info->movespeed;
 		if (info->pitch < -400)
