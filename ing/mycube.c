@@ -7,10 +7,6 @@
 #define texWidth 64
 #define texHeight 64
 
-#define	uDiv 1
-#define	vDiv 1
-#define	vMove 0.0
-
 typedef struct	s_img
 {
 	void	*img;
@@ -52,6 +48,9 @@ typedef struct	s_info
 	int		bitmap_check;
 	t_bit	bit;
 	t_map	m;
+
+	int		pitch;
+
 	// key
 	int		flag_w;
 	int		flag_a;
@@ -81,6 +80,7 @@ typedef struct	s_info
 	double	texpos;
 
 	//floor
+	int		is_floor;
 	double	raydir_x0;
 	double	raydir_y0;
 	double	raydir_x1;
@@ -174,14 +174,19 @@ void	floor_calc(t_info *info)
 	int	y;
 
 	y = 0;
-	while (y < info->winsize_h / 2)
+	while (y < info->winsize_h)
 	{
 		info->raydir_x0 = info->dir_x - info->plane_x;
 		info->raydir_y0 = info->dir_y - info->plane_y;
 		info->raydir_x1 = info->dir_x + info->plane_x;
 		info->raydir_y1 = info->dir_y + info->plane_y;
 
-		info->p = y - info->winsize_h / 2;
+		info->is_floor = y > info->winsize_h / 2 + info->pitch;
+
+		if (info->is_floor == 0)
+			info->p = y - info->winsize_h / 2 - info->pitch;
+		else
+			info->p = info->winsize_h / 2 - y + info->pitch;
 		info->posz = 0.5 * info->winsize_h;
 		info->rowdist = fabs(info->posz / info->p); // -1 ~ 1
 
@@ -202,24 +207,27 @@ void	floor_calc(t_info *info)
 			
 			info->floor_x += info->fstep_x;
 			info->floor_y += info->fstep_y;
-
-			info->texnum = 4;
-			if (info->floor_color == -1)
-				info->color = info->texture[info->texnum][texWidth * info->tex_x + info->tex_y];
+			if (info->is_floor)
+			{
+				info->texnum = 4;
+				if (info->floor_color == -1)
+					info->color = info->texture[info->texnum][texWidth * info->tex_x + info->tex_y];
+				else
+					info->color = info->floor_color;
+				info->color = (info->color >> 1) & 8355711;
+				info->buf[y][x] = info->color;
+			}
 			else
-				info->color = info->floor_color;
-			info->color = (info->color >> 1) & 8355711;
-			info->buf[info->winsize_h - y - 1][x] = info->color;
-
-			info->texnum = 5;
-			if (info->ceil_color == -1)
-				info->color = info->texture[info->texnum][texWidth * info->tex_x + info->tex_y];
-			else
-				info->color = info->ceil_color;
-			info->color = (info->color >> 1) & 8355711;
-
-			info->buf[y][x] = info->color;
-			x++;
+			{
+				info->texnum = 5;
+				if (info->ceil_color == -1)
+					info->color = info->texture[info->texnum][texWidth * info->tex_x + info->tex_y];
+				else
+					info->color = info->ceil_color;
+				info->color = (info->color >> 1) & 8355711;
+				info->buf[y][x] = info->color;
+			}
+				x++;
 		}
 		y++;
 	}
@@ -291,10 +299,10 @@ void	calc(t_info *info)
 
 		info->lineheight = (int)(info->winsize_h / info->perpwalldist);
 
-		info->drawstart = -(info->lineheight) / 2 + info->winsize_h / 2;
+		info->drawstart = -(info->lineheight) / 2 + info->winsize_h / 2 + info->pitch; // + (info->posz / info->perpwalldist); // look up
 		if(info->drawstart < 0)
 			info->drawstart = 0;
-		info->drawend = info->lineheight / 2 + info->winsize_h / 2;
+		info->drawend = info->lineheight / 2 + info->winsize_h / 2 + info->pitch; // + (info->posz / info->perpwalldist);		// look up
 		if(info->drawend >= info->winsize_h)
 			info->drawend = info->winsize_h - 1;
 
@@ -320,7 +328,7 @@ void	calc(t_info *info)
 			info->texnum = 2;
 
 		info->step = 1.0 * texHeight / info->lineheight;
-		info->texpos = (info->drawstart - info->winsize_h / 2 + info->lineheight / 2) * info->step;
+		info->texpos = (info->drawstart - info->pitch - info->winsize_h / 2 + info->lineheight / 2) * info->step; // look up
 		
 		y = info->drawstart;
 		while (y < info->drawend)
@@ -361,17 +369,15 @@ void	calc(t_info *info)
 
 		info->spritescreen_x = (int)((info->winsize_w / 2) * (1 + info->transform_x / info->transform_y));
 
-		int vmovescreen = (int)(vMove / info->transform_y);
-
-		info->sprite_h = abs((int)(info->winsize_h / info->transform_y)) / vDiv;	// !!!!!!!!!!!!!
-		info->drawstart_y = -info->sprite_h / 2 + info->winsize_h / 2 + vmovescreen; // !!!!!!!!!!!!!!!!!
+		info->sprite_h = abs((int)(info->winsize_h / info->transform_y));
+		info->drawstart_y = -info->sprite_h / 2 + info->winsize_h / 2 + info->pitch;
 		if (info->drawstart_y < 0)
 			info->drawstart_y = 0;
-		info->drawend_y = info->sprite_h / 2 + info->winsize_h / 2 + vmovescreen;  //!!!!!!!!!!!!!!!!
+		info->drawend_y = info->sprite_h / 2 + info->winsize_h / 2 + info->pitch;
 		if (info->drawend_y >= info->winsize_h)
 			info->drawend_y = info->winsize_h - 1;
 
-		info->sprite_w = abs((int)(info->winsize_h / info->transform_y)) / uDiv; // !!!!!!!!!!!!!
+		info->sprite_w = abs((int)(info->winsize_h / info->transform_y));
 		info->drawstart_x = -info->sprite_w / 2 + info->spritescreen_x;
 		if (info->drawstart_x < 0)
 			info->drawstart_x = 0;
@@ -379,17 +385,16 @@ void	calc(t_info *info)
 		if (info->drawend_x >= info->winsize_w)
 			info->drawend_x = info->winsize_w - 1;
 
-		x = info->drawstart_x;;
+		x = info->drawstart_x;
 		while (x < info->drawend_x)
 		{
-			info->tex_x = (int)(256 * (x - (info->sprite_w / 2 + info->spritescreen_x)) * texWidth / info->sprite_w) / 256;
-
+			info->tex_x = (int)(256 * (x - (-info->sprite_w / 2 + info->spritescreen_x)) * texWidth / info->sprite_w) / 256;
 			if (info->transform_y > 0 && x > 0 && x < info->winsize_w && info->transform_y < info->zbuffer[x])
 			{
 				y = info->drawstart_y;
 				while (y < info->drawend_y)
 				{
-					info->tex_y = ((int)(256 * ((y - vmovescreen) - info->winsize_h / 2 + info->sprite_h / 2)) * texHeight / info->sprite_h) / 256;	// !!!!!!!!!!!
+					info->tex_y = ((int)(256 * (y - info->pitch - info->winsize_h / 2 + info->sprite_h / 2)) * texHeight / info->sprite_h) / 256;
 					info->color = info->texture[info->sprite[info->sprite_order[i]].texture][texWidth * info->tex_y + info->tex_x];
 					if ((info->color & 0x00FFFFFF) != 0)
 						info->buf[y][x] = info->color;
@@ -427,12 +432,14 @@ void	make_imagetexture(t_info *info, char *path, t_img *img, int *texture)
 	{
 		x = -1;
 		while (++x < img->img_width)
-			texture[img->img_width * y + x] = img->data[img->img_width * y + x];
+			texture[img->img_width * x + y] = img->data[img->img_width * x + y];
 	}
 	mlx_destroy_image(info->mlx, img->img);
 }
 
 void	bitmap_setting(t_info *info);
+void	buf_init(t_info *info);
+
 
 int	main_loop(t_info *info)
 {
@@ -497,8 +504,6 @@ int	key_release(int key, t_info *info)
 		info->flag_d = 0;
 	if (key == K_A)
 		info->flag_a = 0;
-	if (key == K_ESC)
-		;
 	return (0);
 }
 
@@ -516,6 +521,18 @@ int	key_press(int key, t_info *info)
 	{
 		all_free(info, &info->m);
 		exit(0);
+	}
+	else if (key == K_T)
+	{
+		info->pitch += 400 * info->movespeed;
+		if (info->pitch > 400)
+			info->pitch = 400;
+	}
+	else if (key == K_G)
+	{
+		info->pitch -= 400 * info->movespeed;
+		if (info->pitch < -400)
+			info->pitch = -400;
 	}
 	return (0);
 }
@@ -699,6 +716,7 @@ void	cub_play(t_map *m)
 	int	j;
 	int	snum;
 
+	info.pitch = 0;
 	info.flag_w = 0;
 	info.flag_a = 0;
 	info.flag_s = 0;
@@ -828,6 +846,5 @@ void	cub_play(t_map *m)
 	mlx_hook(info.win, X_EVENT_KEY_EXIT, 0, &button_redcross, &info);
 	if (info.bonus_on == 1)
 		mlx_hook(info.win, X_EVENT_MOTION_NOTIFY, 0, &mouse_move, &info);
-
 	mlx_loop(info.mlx);
 }
