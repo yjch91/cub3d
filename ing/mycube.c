@@ -33,7 +33,7 @@ typedef struct	s_info
 	void	*win;
 	t_img	img;
 	int		**buf;
-	int		texture[9][texHeight * texWidth];
+	int		texture[9][texWidth * texHeight];
 	double	movespeed;
 	double	rotspeed;
 	int		texnum;
@@ -49,13 +49,17 @@ typedef struct	s_info
 	t_bit	bit;
 	t_map	m;
 
-	int		pitch;
+	double	pitch;
+	double	jump;
+	double	camz;
 
 	// key
 	int		flag_w;
 	int		flag_a;
 	int		flag_s;
 	int		flag_d;
+	int		flag_c;
+	int		flag_sp;
 
 	//calc
 	double	camera_x;
@@ -182,13 +186,18 @@ void	floor_calc(t_info *info)
 		info->raydir_y1 = info->dir_y + info->plane_y;
 
 		info->is_floor = y > info->winsize_h / 2 + info->pitch;
-
+		
 		if (info->is_floor == 0)
 			info->p = y - info->winsize_h / 2 - info->pitch;
 		else
 			info->p = info->winsize_h / 2 - y + info->pitch;
-		info->posz = 0.5 * info->winsize_h;
-		info->rowdist = fabs(info->posz / info->p); // -1 ~ 1
+		
+		if (info->is_floor == 1)
+			info->camz = 0.5 * info->winsize_h + info->jump;
+		else
+			info->camz = 0.5 * info->winsize_h - info->jump;
+		
+		info->rowdist = fabs(info->camz / info->p); // -1 ~ 1
 
 		info->fstep_x = info->rowdist * (info->raydir_x1 - info->raydir_x0) / info->winsize_w;
 		info->fstep_y = info->rowdist * (info->raydir_y1 - info->raydir_y0) / info->winsize_w;
@@ -299,10 +308,10 @@ void	calc(t_info *info)
 
 		info->lineheight = (int)(info->winsize_h / info->perpwalldist);
 
-		info->drawstart = -(info->lineheight) / 2 + info->winsize_h / 2 + info->pitch; // + (info->posz / info->perpwalldist); // look up
+		info->drawstart = -(info->lineheight) / 2 + info->winsize_h / 2 + info->pitch + (info->jump / info->perpwalldist);
 		if(info->drawstart < 0)
 			info->drawstart = 0;
-		info->drawend = info->lineheight / 2 + info->winsize_h / 2 + info->pitch; // + (info->posz / info->perpwalldist);		// look up
+		info->drawend = info->lineheight / 2 + info->winsize_h / 2 + info->pitch  + (info->jump / info->perpwalldist);
 		if(info->drawend >= info->winsize_h)
 			info->drawend = info->winsize_h - 1;
 
@@ -328,7 +337,7 @@ void	calc(t_info *info)
 			info->texnum = 2;
 
 		info->step = 1.0 * texHeight / info->lineheight;
-		info->texpos = (info->drawstart - info->pitch - info->winsize_h / 2 + info->lineheight / 2) * info->step; // look up
+		info->texpos = (info->drawstart - info->pitch - (info->jump / info->perpwalldist) - info->winsize_h / 2 + info->lineheight / 2) * info->step; // look up
 		
 		y = info->drawstart;
 		while (y < info->drawend)
@@ -370,10 +379,10 @@ void	calc(t_info *info)
 		info->spritescreen_x = (int)((info->winsize_w / 2) * (1 + info->transform_x / info->transform_y));
 
 		info->sprite_h = abs((int)(info->winsize_h / info->transform_y));
-		info->drawstart_y = -info->sprite_h / 2 + info->winsize_h / 2 + info->pitch;
+		info->drawstart_y = -info->sprite_h / 2 + info->winsize_h / 2 + info->pitch + (info->jump / info->transform_y);
 		if (info->drawstart_y < 0)
 			info->drawstart_y = 0;
-		info->drawend_y = info->sprite_h / 2 + info->winsize_h / 2 + info->pitch;
+		info->drawend_y = info->sprite_h / 2 + info->winsize_h / 2 + info->pitch + (info->jump / info->transform_y);
 		if (info->drawend_y >= info->winsize_h)
 			info->drawend_y = info->winsize_h - 1;
 
@@ -394,7 +403,7 @@ void	calc(t_info *info)
 				y = info->drawstart_y;
 				while (y < info->drawend_y)
 				{
-					info->tex_y = ((int)(256 * (y - info->pitch - info->winsize_h / 2 + info->sprite_h / 2)) * texHeight / info->sprite_h) / 256;
+					info->tex_y = ((int)(256 * (y - info->pitch - (info->jump / info->transform_y) - info->winsize_h / 2 + info->sprite_h / 2)) * texHeight / info->sprite_h) / 256;
 					info->color = info->texture[info->sprite[info->sprite_order[i]].texture][texWidth * info->tex_y + info->tex_x];
 					if ((info->color & 0x00FFFFFF) != 0)
 						info->buf[y][x] = info->color;
@@ -440,6 +449,98 @@ void	make_imagetexture(t_info *info, char *path, t_img *img, int *texture)
 void	bitmap_setting(t_info *info);
 void	buf_init(t_info *info);
 
+void	draw_point(t_info *info, int size)
+{
+	int	i;
+	int	j;
+	double	x;
+	double	y;
+	int color;
+
+	int	 p = info->winsize_h;
+	if (p > info->winsize_w)
+		p = info->winsize_w;
+
+	int q = info->map_h;
+	if (q < info->map_w)
+		q = info->map_w;
+	p = p / q;
+
+	y = info->pos_x * p;
+	x = info->pos_y * p;
+	
+	size = p;
+	color = 0xAA0000FF;
+	i = y - (size / 2);
+	while (i < y + (size / 2))
+	{
+		j = x - (size / 2);
+		while (j < x + (size / 2))
+		{
+			info->img.data[i * info->winsize_w + j] = color;
+			j++;
+		}
+		i++;
+	}
+}
+
+void	draw_rectangle(t_info *info, int x, int y)
+{
+	int i;
+	int j;
+	int	color;
+
+	if (info->map[y][x] == 1)
+		color = 0xAAFFFFFF;
+	else if (info->map[y][x] >= 2)
+		color = 0xAAFF0000;
+	else
+		color = 0xAA000000;
+
+	int	 p = info->winsize_h;
+	if (p > info->winsize_w)
+		p = info->winsize_w;
+
+	int q = info->map_h;
+	if (q < info->map_w)
+		q = info->map_w;
+	p = (p / q);
+
+	x *= p;
+	y *= p;
+	i = 0;
+	while (i < p)
+	{
+		j = 0;
+		while (j < p)
+		{
+			info->img.data[(y + i) * info->winsize_w + x + j] = color;
+			j++;
+		}
+		i++;
+	}
+}
+
+void	draw_rectangles(t_info *info)
+{
+	int		i;
+	int		j;
+
+	i = 0;
+	while (i < info->map_h)
+	{
+		j = 0;
+		while (j < info->map_w)
+		{
+			if (info->map[i][j] >= 1)
+				draw_rectangle(info, j, i);
+			else
+				draw_rectangle(info, j, i);
+			j++;
+		}
+		i++;
+	}
+}
 
 int	main_loop(t_info *info)
 {
@@ -448,6 +549,9 @@ int	main_loop(t_info *info)
 	floor_calc(info);
 	calc(info);
 	draw(info);
+	draw_rectangles(info);
+	draw_point(info, 0);
+	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
 	if (info->flag_w == 1)
 	{
 		if (!info->map[(int)(info->pos_x + info->dir_x * info->movespeed)][(int)(info->pos_y)])
@@ -491,6 +595,22 @@ int	main_loop(t_info *info)
 		all_free(info, &info->m);
 		exit(0);
 	}
+	if (info->jump > 0)
+	{
+		if (0 > info->jump - info->winsize_h / 4 * info->movespeed)
+			info->jump = 0;
+		else
+			info->jump = info->jump - info->winsize_h / 4 * info->movespeed;
+	}
+	if (info->jump < 0 && info->flag_c == 0)
+	{
+		if (0 > info->jump + info->winsize_h / 3 * info->movespeed)
+			info->jump = 0;
+		else
+			info->jump = info->jump + info->winsize_h / 3 * info->movespeed;
+	}
+	else if (info->jump == 0)
+		info->flag_sp = 0;
 	return (0);
 }
 
@@ -504,6 +624,11 @@ int	key_release(int key, t_info *info)
 		info->flag_d = 0;
 	if (key == K_A)
 		info->flag_a = 0;
+	if (key == K_C && info->flag_c == 1)
+	{
+		info->flag_c = 0;
+		info->movespeed *= 3;
+	}
 	return (0);
 }
 
@@ -522,17 +647,28 @@ int	key_press(int key, t_info *info)
 		all_free(info, &info->m);
 		exit(0);
 	}
-	else if (key == K_T && info->bonus_on == 1)
+	if (key == K_T && info->bonus_on == 1)
 	{
 		info->pitch += 400 * info->movespeed;
 		if (info->pitch > 400)
 			info->pitch = 400;
 	}
-	else if (key == K_G && info->bonus_on == 1)
+	if (key == K_G && info->bonus_on == 1)
 	{
 		info->pitch -= 400 * info->movespeed;
 		if (info->pitch < -400)
 			info->pitch = -400;
+	}
+	if (key == K_SP && info->bonus_on == 1 && info->flag_sp == 0)
+	{
+		info->jump = info->winsize_h / 2;
+		info->flag_sp = 1;
+	}
+	if (key == K_C && info->bonus_on == 1 && info->flag_c == 0)
+	{
+		info->jump = -info->winsize_h / 3;
+		info->flag_c = 1;
+		info->movespeed /= 3;
 	}
 	return (0);
 }
@@ -717,10 +853,13 @@ void	cub_play(t_map *m)
 	int	snum;
 
 	info.pitch = 0;
+	info.jump = 0;
 	info.flag_w = 0;
 	info.flag_a = 0;
 	info.flag_s = 0;
 	info.flag_d = 0;
+	info.flag_c = 0;
+	info.flag_sp = 0;
 	info.bonus_on = m->bonus_on;
 	info.movespeed = 0.05;
 	info.rotspeed = 0.025;
@@ -751,22 +890,22 @@ void	cub_play(t_map *m)
 	if (info.winsize_w > m->w)
 		info.winsize_w = m->w;
 	else
-		write(1, "width > maxsize so width = maxsize\n", 33);
+		write(1, "width > maxsize so width = maxsize\n", 35);
 
 	if (info.winsize_h > m->h)
 		info.winsize_h = m->h;
 	else
-		write(1, "height > maxsize so height = maxsize\n", 35);
+		write(1, "height > maxsize so height = maxsize\n", 37);
 
 	if (info.winsize_w < 200)
 	{
 		info.winsize_w = 200;
-		write(1, "width is very little so width = 200\n", 33);
+		write(1, "width is very little so width = 200\n", 36);
 	}
 	if (info.winsize_h < 200)
 	{
 		info.winsize_h = 200;
-		write(1, "height is very little so height = 200\n", 35);
+		write(1, "height is very little so height = 200\n", 38);
 	}
 
 	info.mouse_y1 = info.winsize_h / 2;
@@ -788,6 +927,7 @@ void	cub_play(t_map *m)
 
 	if (sprite_alloc(&info, m) == 0)
 		return ;
+
 
 	make_imagetexture(&info, m->north, &info.img, info.texture[0]);
 	make_imagetexture(&info, m->south, &info.img, info.texture[1]);

@@ -250,6 +250,12 @@ int	xpmfile_check(t_map *m)
 	c = ft_strnstr(m->item, ".xpm", ft_strlen(m->item));
 	if (c == 0 || ft_strlen(c) != 4)
 		return (0);
+	c = ft_strnstr(m->floor, ".xpm", ft_strlen(m->floor));
+	if (m->floor_color == -1 && (c == 0 || ft_strlen(c) != 4))
+		return (0);
+	c = ft_strnstr(m->ceil, ".xpm", ft_strlen(m->ceil));
+	if (m->ceil_color == -1 && (c == 0 || ft_strlen(c) != 4))
+		return (0);
 	return (1);
 }
 
