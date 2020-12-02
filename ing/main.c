@@ -281,7 +281,7 @@ int	map_line_check(t_map *m, char *line, int x)
 		}	// check plz
 		else if (m->bonus_on == 0 && !((line[i] >= '0' && line[i] <= '2') || line[i] == 32))
 			return (0);
-		else if (m->bonus_on == 1 && !((line[i] >= '0' && line[i] <= '4') || line[i] == 32))
+		else if (m->bonus_on == 1 && !((line[i] >= '0' && line[i] <= '6') || line[i] == 32))
 			return (0);
 	}
 	return (1);
@@ -873,7 +873,7 @@ void	get_sprite_count(t_map *m)
 		{
 			if (m->map[i][j] == 2)
 				m->sprite_count++;
-			else if (m->bonus_on == 1 && (m->map[i][j] > 2 && m->map[i][j] <= 4))
+			else if (m->bonus_on == 1 && (m->map[i][j] > 2 && m->map[i][j] <= 6))
 				m->sprite_count++;
 			j++;
 		}

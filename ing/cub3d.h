@@ -59,6 +59,7 @@ int		get_next_line(int fd, char **line);
 char	*ft_strdup_size(const char *s1, int left, int right);
 int		ft_strlen(const char *s);
 char	*ft_strjoin(char const *s1, char const *s2);
+char	*ft_strnstr(const char *haystack, const char *needle, size_t len);
 void	cub_play(t_map *m);
 void	map_array_free(t_map *m, int n, int type);
 #endif

@@ -10,6 +10,10 @@ MAINSRCS = main.c
 
 BMAINSRCS = main_bonus.c
 
+MAINOBJS = ${MAINSRCS:.c=.o}
+
+BMAINOBJS = ${BMAINSRCS:.c=.o}
+
 OBJS = ${SRCS:.c=.o}
 
 NAME = cub3D
@@ -32,10 +36,10 @@ ${LIBOPENGL}:
 ${NAME}:	${OBJS} ${MAINOBJS} ${LIBMMS} ${LIBOPENGL}
 			cp ./mini_opengl/libmlx.a ./
 			cp ./minilibx_mms/libmlx.dylib ./
-			${CC} -lmlx ${CFLAGS_MLX} ${OBJS} ${MAINSRCS} ${LIBMMS} ${LIBOPENGL} -o ${NAME}
+			${CC} -lmlx ${CFLAGS_MLX} ${OBJS} ${MAINOBJS} ${LIBMMS} ${LIBOPENGL} -o ${NAME}
 			
 clean:
-		rm -f ${OBJS} ${MAINOBJS} ${LIBMMS} ${LIBOPENGL}
+		rm -f ${OBJS} ${MAINOBJS} ${BMAINOBJS} ${LIBMMS} ${LIBOPENGL}
 
 fclean:	clean
 		rm -f ${NAME}
@@ -47,6 +51,6 @@ re:		fclean ${NAME}
 bonus:	${OBJS} ${BMAINOBJS} ${LIBMMS} ${LIBOPENGL}
 		cp ./mini_opengl/libmlx.a ./
 		cp ./minilibx_mms/libmlx.dylib ./
-		${CC} -lmlx ${CFLAGS_MLX} ${OBJS} ${BMAINSRCS} ${LIBMMS} ${LIBOPENGL} -o ${NAME}
+		${CC} -lmlx ${CFLAGS_MLX} ${OBJS} ${BMAINOBJS} ${LIBMMS} ${LIBOPENGL} -o ${NAME}
 
 .PHONY:	all clean fclean re

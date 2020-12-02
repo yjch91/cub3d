@@ -51,7 +51,6 @@ typedef struct	s_info
 
 	double	pitch;
 	double	jump;
-	double	camz;
 
 	// key
 	int		flag_w;
@@ -60,6 +59,10 @@ typedef struct	s_info
 	int		flag_d;
 	int		flag_c;
 	int		flag_sp;
+	int		flag_sky;
+	
+	// bonus
+	double	hp;
 
 	//calc
 	double	camera_x;
@@ -100,10 +103,11 @@ typedef struct	s_info
 	int		cell_y;
 	int		floor_color;
 	int		ceil_color;
+	t_img	sky;
 
 	// mouse
-	int		mouse_y1;
-	int		mouse_y2;
+	int		mouse_x1;
+	int		mouse_x2;
 
 	// sprite
 	t_sprite	*sprite;
@@ -123,6 +127,8 @@ typedef struct	s_info
 	int		drawstart_y;
 	int		drawend_x;
 	int		drawend_y;
+	t_img	poison;
+	t_img	portion;
 }				t_info;
 
 void	sort_sprite(t_info *info, int amount)
@@ -193,11 +199,11 @@ void	floor_calc(t_info *info)
 			info->p = info->winsize_h / 2 - y + info->pitch;
 		
 		if (info->is_floor == 1)
-			info->camz = 0.5 * info->winsize_h + info->jump;
+			info->posz = 0.5 * info->winsize_h + info->jump;
 		else
-			info->camz = 0.5 * info->winsize_h - info->jump;
+			info->posz = 0.5 * info->winsize_h - info->jump;
 		
-		info->rowdist = fabs(info->camz / info->p); // -1 ~ 1
+		info->rowdist = fabs(info->posz / info->p); // -1 ~ 1
 
 		info->fstep_x = info->rowdist * (info->raydir_x1 - info->raydir_x0) / info->winsize_w;
 		info->fstep_y = info->rowdist * (info->raydir_y1 - info->raydir_y0) / info->winsize_w;
@@ -235,8 +241,16 @@ void	floor_calc(t_info *info)
 					info->color = info->ceil_color;
 				info->color = (info->color >> 1) & 8355711;
 				info->buf[y][x] = info->color;
+				if (info->flag_sky == 1)
+				{
+					int a, b;
+					a = y * info->sky.img_width / info->winsize_h;
+					a = info->sky.img_width - a + 1;
+					b = x * info->sky.img_height / info->winsize_w;
+					info->buf[y][x] = info->sky.data[b * info->sky.img_width + a];
+				}
 			}
-				x++;
+			x++;
 		}
 		y++;
 	}
@@ -345,7 +359,7 @@ void	calc(t_info *info)
 			info->tex_y = (int)(info->texpos) & (texHeight - 1);
 			info->texpos += info->step;
 		
-			info->color = info->texture[info->texnum][texHeight * info->tex_y + info->tex_x];
+			info->color = info->texture[info->texnum][texWidth * info->tex_y + info->tex_x];
 			// make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
 			if (info->side == 1)
 				info->color = (info->color >> 1) & 8355711;
@@ -357,6 +371,7 @@ void	calc(t_info *info)
 	}
 
 	i = 0;
+	
 	while (i < info->sprite_count)
 	{
 		info->sprite_order[i] = i;
@@ -369,48 +384,62 @@ void	calc(t_info *info)
 	i = 0;
 	while (i < info->sprite_count)
 	{
-		info->sprite_x = info->sprite[info->sprite_order[i]].x - info->pos_x;
-		info->sprite_y = info->sprite[info->sprite_order[i]].y - info->pos_y;
-
-		info->invdet = 1.0 / (info->plane_x * info->dir_y - info->dir_x * info->plane_y);
-		info->transform_x = info->invdet * (info->dir_y * info->sprite_x - info->dir_x * info->sprite_y);
-		info->transform_y = info->invdet * (-info->plane_y * info->sprite_x + info->plane_x * info->sprite_y);
-
-		info->spritescreen_x = (int)((info->winsize_w / 2) * (1 + info->transform_x / info->transform_y));
-
-		info->sprite_h = abs((int)(info->winsize_h / info->transform_y));
-		info->drawstart_y = -info->sprite_h / 2 + info->winsize_h / 2 + info->pitch + (info->jump / info->transform_y);
-		if (info->drawstart_y < 0)
-			info->drawstart_y = 0;
-		info->drawend_y = info->sprite_h / 2 + info->winsize_h / 2 + info->pitch + (info->jump / info->transform_y);
-		if (info->drawend_y >= info->winsize_h)
-			info->drawend_y = info->winsize_h - 1;
-
-		info->sprite_w = abs((int)(info->winsize_h / info->transform_y));
-		info->drawstart_x = -info->sprite_w / 2 + info->spritescreen_x;
-		if (info->drawstart_x < 0)
-			info->drawstart_x = 0;
-		info->drawend_x = info->sprite_w / 2 + info->spritescreen_x;
-		if (info->drawend_x >= info->winsize_w)
-			info->drawend_x = info->winsize_w - 1;
-
-		x = info->drawstart_x;
-		while (x < info->drawend_x)
+		if (info->sprite[info->sprite_order[i]].texture != -1)
 		{
-			info->tex_x = (int)(256 * (x - (-info->sprite_w / 2 + info->spritescreen_x)) * texWidth / info->sprite_w) / 256;
-			if (info->transform_y > 0 && x > 0 && x < info->winsize_w && info->transform_y < info->zbuffer[x])
+			info->sprite_x = info->sprite[info->sprite_order[i]].x - info->pos_x;
+			info->sprite_y = info->sprite[info->sprite_order[i]].y - info->pos_y;
+	
+			info->invdet = 1.0 / (info->plane_x * info->dir_y - info->dir_x * info->plane_y);
+			info->transform_x = info->invdet * (info->dir_y * info->sprite_x - info->dir_x * info->sprite_y);
+			info->transform_y = info->invdet * (-info->plane_y * info->sprite_x + info->plane_x * info->sprite_y);
+	
+			info->spritescreen_x = (int)((info->winsize_w / 2) * (1 + info->transform_x / info->transform_y));
+	
+			info->sprite_h = abs((int)(info->winsize_h / info->transform_y));
+			info->drawstart_y = -info->sprite_h / 2 + info->winsize_h / 2 + info->pitch + (info->jump / info->transform_y);
+			if (info->drawstart_y < 0)
+				info->drawstart_y = 0;
+			info->drawend_y = info->sprite_h / 2 + info->winsize_h / 2 + info->pitch + (info->jump / info->transform_y);
+			if (info->drawend_y >= info->winsize_h)
+				info->drawend_y = info->winsize_h - 1;
+	
+			info->sprite_w = abs((int)(info->winsize_h / info->transform_y));
+			info->drawstart_x = -info->sprite_w / 2 + info->spritescreen_x;
+			if (info->drawstart_x < 0)
+				info->drawstart_x = 0;
+			info->drawend_x = info->sprite_w / 2 + info->spritescreen_x;
+			if (info->drawend_x >= info->winsize_w)
+				info->drawend_x = info->winsize_w - 1;
+			
+			int texw = 64;
+			if (info->sprite[info->sprite_order[i]].texture >= 9)
+				texw = 600;
+			x = info->drawstart_x;
+			while (x < info->drawend_x)
 			{
-				y = info->drawstart_y;
-				while (y < info->drawend_y)
+				info->tex_x = (int)(256 * (x - (-info->sprite_w / 2 + info->spritescreen_x)) * texw / info->sprite_w) / 256;
+				if (info->transform_y > 0 && x > 0 && x < info->winsize_w && info->transform_y < info->zbuffer[x])
 				{
-					info->tex_y = ((int)(256 * (y - info->pitch - (info->jump / info->transform_y) - info->winsize_h / 2 + info->sprite_h / 2)) * texHeight / info->sprite_h) / 256;
-					info->color = info->texture[info->sprite[info->sprite_order[i]].texture][texWidth * info->tex_y + info->tex_x];
-					if ((info->color & 0x00FFFFFF) != 0)
-						info->buf[y][x] = info->color;
-					y++;
+					y = info->drawstart_y;
+					while (y < info->drawend_y)
+					{
+						info->tex_y = ((int)(256 * (y - info->pitch - (info->jump / info->transform_y) - info->winsize_h / 2 + info->sprite_h / 2)) * texw / info->sprite_h) / 256;
+						if (texw == 600)
+						{
+							if (info->sprite[info->sprite_order[i]].texture == 9)
+								info->color = info->portion.data[texw * info->tex_x + info->tex_y];
+							else if (info->sprite[info->sprite_order[i]].texture == 10)
+								info->color = info->poison.data[texw * info->tex_x + info->tex_y];
+						}
+						else
+							info->color = info->texture[info->sprite[info->sprite_order[i]].texture][texw * info->tex_y + info->tex_x];
+						if ((info->color & 0x00FFFFFF) != 0 && (info->color != 0x0000FF00) != 0)
+							info->buf[y][x] = info->color;
+						y++;
+					}
 				}
+				x++;
 			}
-			x++;
 		}
 		i++;
 	}
@@ -444,6 +473,7 @@ void	make_imagetexture(t_info *info, char *path, t_img *img, int *texture)
 			texture[img->img_width * x + y] = img->data[img->img_width * x + y];
 	}
 	mlx_destroy_image(info->mlx, img->img);
+	img->img = 0;
 }
 
 void	bitmap_setting(t_info *info);
@@ -482,6 +512,78 @@ void	draw_point(t_info *info, int size)
 		}
 		i++;
 	}
+}
+
+static	int	get_atoi_size(int n)
+{
+	int	count;
+
+	if (n == 0)
+		return (1);
+	count = 0;
+	while (n != 0)
+	{
+		count++;
+		n /= 10;
+	}
+	return (count);
+}
+
+char		*ft_itoa(int n)
+{
+	char	*temp;
+	int		size;
+	int		minus;
+
+	size = get_atoi_size(n);
+	minus = 1;
+	if (n < 0)
+		size++;
+	if (n < 0)
+		minus = -1;
+	temp = (char *)malloc(sizeof(char) * (size + 1));
+	if (temp == 0)
+		return (0);
+	temp[size] = '\0';
+	if (n == 0)
+		temp[0] = '0';
+	if (n < 0)
+		temp[0] = '-';
+	while (--size >= 0 && n != 0)
+	{
+		temp[size] = n % 10 * minus + '0';
+		n /= 10;
+	}
+	return (temp);
+}
+
+void	draw_lifebar(t_info *info)
+{
+	int	x;
+	int y;
+	int	w;
+	int	h;
+	char	*hp_str;
+
+	w = info->winsize_w / 20;
+	if (w < 40)
+		w = 40;
+	h = info->winsize_h / 3;
+
+	hp_str = ft_itoa((int)info->hp);
+	x = 0;
+	while (x < w)
+	{
+		y = (info->winsize_h * 2 / 3) + ((100 - info->hp) / 100 * h );;
+		while (y < info->winsize_h)
+		{
+			info->img.data[y * info->winsize_w + x] = 0xAAFF0000;
+			y++;
+		}
+		x++;
+	}
+	mlx_string_put(info->mlx, info->win, 0, (info->winsize_h * 2 / 3) + ((100 - info->hp) / 100) * h, 0x00FF00, hp_str);
+	free(hp_str);
 }
 
 void	draw_rectangle(t_info *info, int x, int y)
@@ -542,29 +644,94 @@ void	draw_rectangles(t_info *info)
 	}
 }
 
+void	remove_sprite(t_info *info, int x, int y)
+{
+	int	i;
+
+	i = 0;
+	while (i < info->sprite_count)
+	{
+		if ((int)info->sprite[i].x == x && (int)info->sprite[i].y == y)
+		{
+			info->sprite[i].texture = -1;
+			break ;
+		}
+		i++;
+	}
+}
+
 int	main_loop(t_info *info)
 {
 	int	fd;
+	int	n;
 
 	floor_calc(info);
 	calc(info);
 	draw(info);
-	draw_rectangles(info);
-	draw_point(info, 0);
-	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
+	if (info->bonus_on == 1)
+	{
+		draw_rectangles(info);
+		draw_point(info, 0);
+		draw_lifebar(info);
+		mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
+	}
 	if (info->flag_w == 1)
 	{
-		if (!info->map[(int)(info->pos_x + info->dir_x * info->movespeed)][(int)(info->pos_y)])
+		n = info->map[(int)(info->pos_x + info->dir_x * info->movespeed)][(int)(info->pos_y)];
+		if (n == 0 || n == 3)
 			info->pos_x += info->dir_x * info->movespeed;
-		if (!info->map[(int)(info->pos_x)][(int)(info->pos_y + info->dir_y * info->movespeed)])
+		else if (n == 5 || n == 6)
+		{
+			info->map[(int)(info->pos_x + info->dir_x * info->movespeed)][(int)(info->pos_y)] = 0;
+			remove_sprite(info, (int)(info->pos_x + info->dir_x * info->movespeed), (int)(info->pos_y));
+			info->pos_x += info->dir_x * info->movespeed;
+			if (n == 5)
+				info->hp += 10;
+			else
+				info->hp -= 10;
+		}
+		n = info->map[(int)(info->pos_x)][(int)(info->pos_y + info->dir_y * info->movespeed)];
+		if (n == 0 || n == 3)
 			info->pos_y += info->dir_y * info->movespeed;
+		else if (n == 5 || n == 6)
+		{
+			info->map[(int)(info->pos_x)][(int)(info->pos_y + info->dir_y * info->movespeed)] = 0;
+			remove_sprite(info, (int)(info->pos_x), (int)(info->pos_y + info->dir_y * info->movespeed));
+			info->pos_y += info->dir_y * info->movespeed;
+			if (n == 5)
+				info->hp += 10;
+			else
+				info->hp -= 10;
+		}
 	}
 	if (info->flag_s == 1)
 	{
-		if (!info->map[(int)(info->pos_x - info->dir_x * info->movespeed)][(int)(info->pos_y)])
+		n = info->map[(int)(info->pos_x - info->dir_x * info->movespeed)][(int)(info->pos_y)];
+		if (n == 0)
 			info->pos_x -= info->dir_x * info->movespeed;
-		if (!info->map[(int)(info->pos_x)][(int)(info->pos_y - info->dir_y * info->movespeed)])
+		else if (n == 5 || n == 6)
+		{
+			info->map[(int)(info->pos_x - info->dir_x * info->movespeed)][(int)(info->pos_y)] = 0;
+			remove_sprite(info, (int)(info->pos_x - info->dir_x * info->movespeed), (int)(info->pos_y));
+			info->pos_x -= info->dir_x * info->movespeed;
+			if (n == 5)
+				info->hp += 10;
+			else
+				info->hp -= 10;
+		}
+		n = info->map[(int)(info->pos_x)][(int)(info->pos_y - info->dir_y * info->movespeed)];
+		if (n == 0)
 			info->pos_y -= info->dir_y * info->movespeed;
+		else if (n == 5 || n == 6)
+		{
+			info->map[(int)(info->pos_x)][(int)(info->pos_y - info->dir_y * info->movespeed)] = 0;
+			remove_sprite(info, (int)(info->pos_x), (int)(info->pos_y - info->dir_y * info->movespeed));
+			info->pos_y -= info->dir_y * info->movespeed;
+			if (n == 5)
+				info->hp += 10;
+			else
+				info->hp -= 10;
+		}
 	}
 	if (info->flag_d == 1)
 	{
@@ -679,11 +846,11 @@ int button_redcross(t_info *info)
 	exit(0);
 }
 
-int	mouse_move(int y, int x, t_info *info)
+int	mouse_move(int x, int y, t_info *info)
 {
-	info->mouse_y2 = y;
+	info->mouse_x2 = x;
 
-	if (x >= 0 && y >= 0 && x <= info->winsize_h && y <= info->winsize_w && y < info->mouse_y1)
+	if (x >= 0 && y >= 0 && x <= info->winsize_w && y <= info->winsize_h && x < info->mouse_x1)
 	{
 		double olddir_x = info->dir_x;
 		info->dir_x = info->dir_x * cos(info->rotspeed) - info->dir_y * sin(info->rotspeed);
@@ -691,9 +858,9 @@ int	mouse_move(int y, int x, t_info *info)
 		double oldplane_x = info->plane_x;
 		info->plane_x = info->plane_x * cos(info->rotspeed) - info->plane_y * sin(info->rotspeed);
 		info->plane_y = oldplane_x * sin(info->rotspeed) + info->plane_y * cos(info->rotspeed);
-		info->mouse_y1 = y;
+		info->mouse_x1 = x;
 	}
-	else if (x >= 0 && y >= 0 && x <= info->winsize_h && y <= info->winsize_w && y > info->mouse_y1)
+	else if (x >= 0 && y >= 0 && x <= info->winsize_w && y <= info->winsize_h && x > info->mouse_x1)
 	{
 		double olddir_x = info->dir_x;
 		info->dir_x = info->dir_x * cos(info->rotspeed) + info->dir_y * sin(info->rotspeed);
@@ -701,7 +868,7 @@ int	mouse_move(int y, int x, t_info *info)
 		double oldplane_x = info->plane_x;
 		info->plane_x = info->plane_x * cos(info->rotspeed) + info->plane_y * sin(info->rotspeed);
 		info->plane_y = -oldplane_x * sin(info->rotspeed) + info->plane_y * cos(info->rotspeed);
-		info->mouse_y1 = y;
+		info->mouse_x1 = x;
 	}
 	return (0);
 }
@@ -780,10 +947,11 @@ int	buf_alloc_init(t_info *info, t_map *m)
 	if ((info->buf = (int **)malloc(sizeof(int *) * info->winsize_h)) == 0)
 	{
 		map_array_free(m, m->map_x, 0);
+		free(info->mlx);
 		return (0);
 	}
-	i = 0;
-	while (i < info->winsize_h)
+	i = -1;
+	while (++i < info->winsize_h)
 	{
 		if ((info->buf[i] = (int *)malloc(sizeof(int) * info->winsize_w)) == 0)
 		{
@@ -792,9 +960,9 @@ int	buf_alloc_init(t_info *info, t_map *m)
 			while (++j < i)
 				free(info->buf[j]);
 			free(info->buf);
+			free(info->mlx);
 			return (0);
 		}
-		i++;
 	}
 	buf_init(info);
 	return (1);
@@ -819,6 +987,15 @@ void	all_free(t_info *info, t_map *m)
 		free(info->sprite_dist);
 	if (info->img.img != 0)
 		mlx_destroy_image(info->mlx, info->img.img);
+	if (info->win != 0)
+		mlx_destroy_window(info->mlx, info->win);
+	if (info->sky.img != 0)
+		mlx_destroy_image(info->mlx, info->sky.img);
+	if (info->portion.img != 0)
+		mlx_destroy_image(info->mlx, info->portion.img);
+	if (info->poison.img != 0)
+		mlx_destroy_image(info->mlx, info->poison.img);
+	free(info->mlx);
 }
 
 int	sprite_alloc_fail(t_info *info, t_map *m)
@@ -854,12 +1031,17 @@ void	cub_play(t_map *m)
 
 	info.pitch = 0;
 	info.jump = 0;
+	info.hp = 100;
+	info.sky.img  = 0;
+	info.portion.img = 0;
+	info.poison.img = 0;
 	info.flag_w = 0;
 	info.flag_a = 0;
 	info.flag_s = 0;
 	info.flag_d = 0;
 	info.flag_c = 0;
 	info.flag_sp = 0;
+	info.flag_sky = 0;
 	info.bonus_on = m->bonus_on;
 	info.movespeed = 0.05;
 	info.rotspeed = 0.025;
@@ -908,7 +1090,7 @@ void	cub_play(t_map *m)
 		write(1, "height is very little so height = 200\n", 38);
 	}
 
-	info.mouse_y1 = info.winsize_h / 2;
+	info.mouse_x1 = info.winsize_w / 2;
 
 	if (buf_alloc_init(&info, m) == 0)
 		return ;
@@ -928,6 +1110,8 @@ void	cub_play(t_map *m)
 	if (sprite_alloc(&info, m) == 0)
 		return ;
 
+//	t_img test;
+//	test.img = mlx_xpm_file_to_image(info.mlx, m->ceil, &test.img_width, &test.img_height);
 
 	make_imagetexture(&info, m->north, &info.img, info.texture[0]);
 	make_imagetexture(&info, m->south, &info.img, info.texture[1]);
@@ -936,10 +1120,41 @@ void	cub_play(t_map *m)
 	if (info.floor_color == -1)
 		make_imagetexture(&info, m->floor, &info.img, info.texture[4]);
 	if (info.ceil_color == -1)
-		make_imagetexture(&info, m->ceil, &info.img, info.texture[5]);
+	{
+		if (ft_strnstr(m->ceil, "./textures/skybox", 17) != 0)
+		{
+			info.flag_sky = 1;
+			info.sky.img = mlx_xpm_file_to_image(info.mlx, m->ceil, &info.sky.img_width, &info.sky.img_height);
+			if (info.sky.img == 0)
+			{
+				perror(m->ceil);
+				all_free(&info, &info.m);
+				exit(0);	// modi
+			}
+			info.sky.data = (int *)mlx_get_data_addr(info.sky.img, &info.sky.bpp, &info.sky.size_l, &info.sky.endian);
+			if (info.sky.data == 0)
+			{
+				write(1, "error : mlx_get_data_addr result = NULL\n", 39);
+				all_free(&info, &info.m);
+				exit(0);	// modi
+			}
+		}
+		else
+			make_imagetexture(&info, m->ceil, &info.img, info.texture[5]);
+	}
 	make_imagetexture(&info, m->item, &info.img, info.texture[6]);
 	make_imagetexture(&info, "textures/greenlight.xpm", &info.img, info.texture[7]);
 	make_imagetexture(&info, "textures/pillar.xpm", &info.img, info.texture[8]);
+
+	// error check
+
+	info.portion.img = mlx_xpm_file_to_image(info.mlx, "./textures/health_s.xpm", &info.portion.img_width, &info.portion.img_height);
+	info.portion.data = (int *)mlx_get_data_addr(info.portion.img, &info.portion.bpp, &info.portion.size_l, &info.portion.endian);
+
+	info.poison.img = mlx_xpm_file_to_image(info.mlx, "./textures/health_b.xpm", &info.poison.img_width, &info.poison.img_height);
+	info.poison.data = (int *)mlx_get_data_addr(info.poison.img, &info.poison.bpp, &info.poison.size_l, &info.poison.endian);
+
+	/****************************/
 
 	snum = 0;
 	i = 0;
@@ -948,7 +1163,7 @@ void	cub_play(t_map *m)
 		j = 0;
 		while (j < info.map_w)
 		{
-			if (info.map[i][j] >= 2)
+			if (info.map[i][j] >= 2 && info.map[i][j] <= 6)
 			{
 				info.sprite[snum].x = i + 0.5;
 				info.sprite[snum].y = j + 0.5;
@@ -959,7 +1174,7 @@ void	cub_play(t_map *m)
 		}
 		i++;
 	}
-	
+
 	if ((info.win = mlx_new_window(info.mlx, info.winsize_w, info.winsize_h, "mlx")) == 0)
 	{
 		all_free(&info, m);
@@ -978,6 +1193,8 @@ void	cub_play(t_map *m)
 		write(1, "error : mlx_get_data_addr return = NULL\n", 40);
 		return ;
 	}
+	
+//	mlx_put_image_to_window(info.mlx, info.win, test.img, 0, 0);
 
 	mlx_loop_hook(info.mlx, &main_loop, &info);
 
