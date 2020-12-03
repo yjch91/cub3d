@@ -1,4 +1,5 @@
 #include "cub3d.h"
+#include <signal.h>
 
 int	g_map_empty;
 
@@ -656,6 +657,7 @@ int	gnl_map_info(t_map *m, int n)
 			write(1, "error : get_next_line return value -1\n", 38);
 		return (0);
 	}
+	free(line);
 	return (1);
 }
 
@@ -904,8 +906,6 @@ int	wall_check(t_map *m)
 int	main(int argc, char **argv)
 {
 	t_map	m;
-	int		i;
-	int		j;
 
 	map_init(&m);
 	m.bonus_on = 1;
@@ -935,13 +935,24 @@ int	main(int argc, char **argv)
 		if (wall_check(&m) == 0)
 			return (0);
 		get_sprite_count(&m);
-		cub_play(&m);
 
-		printf(" ---------------\n");
+	//	system("killall afplay");
+	//	system("afplay -v 0.30 ./sound/bgm.mp3 &>/dev/null &");
+
+		/*
+		m.pid = 0;
+		m.pid = fork();
+		if (m.pid == 0)
+			system("afplay ./sound/bgm.mp3 -v 1");
+		if (m.pid != 0)*/
+		cub_play(&m);
+	//	system("killall afplay");
+
+/*		printf(" ---------------\n");
 		printf("dir %c x = %d y = %d\n", m.start_dir, m.start_x, m.start_y);
-		for (i = 0; i < m.map_x; i++)
+		for (int i = 0; i < m.map_x; i++)
 		{
-			for (j = 0; j < m.map_y; j++)
+			for (int j = 0; j < m.map_y; j++)
 			{
 				if (m.map[i][j] == 32)
 					printf("@");
@@ -961,7 +972,7 @@ int	main(int argc, char **argv)
 		printf("%s\n", m.floor);
 		printf("%s\n", m.ceil);
 		printf("%s\n", m.size);
-		printf("w = %d h = %d\n", m.w, m.h);
+		printf("w = %d h = %d\n", m.w, m.h);*/
 	}
 	else
 		write(1, "argument error : program [.cub] ([--save]) is not\n", 50);

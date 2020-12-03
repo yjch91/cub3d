@@ -24,6 +24,7 @@ typedef struct	s_list
 typedef struct	s_map
 {
 	int		fd;
+	int		pid;
 	int		bonus_on;
 	char	*north;
 	char	*south;

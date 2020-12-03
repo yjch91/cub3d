@@ -656,6 +656,7 @@ int	gnl_map_info(t_map *m, int n)
 			write(1, "error : get_next_line return value -1\n", 38);
 		return (0);
 	}
+	free(line);
 	return (1);
 }
 
