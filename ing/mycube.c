@@ -180,12 +180,12 @@ void	draw(t_info *info)
 	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
 }
 
-int	shade_color(t_info *info, double sh, int c)
+int	shade_color(double dist, int c)
 {
 	int result;
 	double	n;
 
-	n = sh / 1.5;
+	n = dist / 1.5;
 	if (n <= 1.0)
 		n = 1.0;
 	if (n >= 20.0)
@@ -209,7 +209,7 @@ void	floor_calc(t_info *info)
 
 		info->is_floor = y > info->winsize_h / 2 + info->pitch;
 		
-		if (info->is_floor == 0)
+		if (info->is_floor == 1)
 			info->p = y - info->winsize_h / 2 - info->pitch;
 		else
 			info->p = info->winsize_h / 2 - y + info->pitch;
@@ -253,7 +253,7 @@ void	floor_calc(t_info *info)
 				else
 					info->color = info->floor_color;
 				if (info->flag_sky != 1)
-					info->color = shade_color(info, info->sh, info->color);
+					info->color = shade_color(info->sh, info->color);
 				info->buf[y][x] = info->color;
 			}
 			else
@@ -271,7 +271,7 @@ void	floor_calc(t_info *info)
 					info->color = info->texture[5].data[b * info->texture[5].img_width + a];
 				}
 				if (info->flag_sky != 1)
-					info->color = shade_color(info, info->sh, info->color);
+					info->color = shade_color(info->sh, info->color);
 				info->buf[y][x] = info->color;
 			}
 			x++;
@@ -388,7 +388,7 @@ void	calc(t_info *info)
 			info->sh = info->perpwalldist;
 			info->color = info->texture[info->texnum].data[info->texture[info->texnum].img_width * info->tex_y + info->tex_x];
 			if (info->flag_sky != 1)
-				info->color = shade_color(info, info->sh, info->color);
+				info->color = shade_color(info->sh, info->color);
 			info->buf[y][x] = info->color;
 			y++;
 		}
@@ -457,7 +457,7 @@ void	calc(t_info *info)
 						if ((info->color & 0x00FFFFFF) != 0 && (info->color != 0x0000FF00) != 0)
 						{
 							if (info->flag_sky != 1)
-								info->color = shade_color(info, info->sh, info->color);
+								info->color = shade_color(info->sh, info->color);
 							info->buf[y][x] = info->color;
 						}
 						y++;
