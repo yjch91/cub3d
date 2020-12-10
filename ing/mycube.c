@@ -180,6 +180,20 @@ void	draw(t_info *info)
 	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
 }
 
+int	shade_color(t_info *info, double sh, int c)
+{
+	int result;
+	double	n;
+
+	n = sh / 1.5;
+	if (n <= 1.0)
+		n = 1.0;
+	if (n >= 20.0)
+		n = 20.0;
+	result = ((int)(((0xFF0000 & c) >> 16) / n) << 16) + ((int)(((0x00FF00 & c) >> 8) / n) << 8) + ((int)((0x0000FF & c) / n));
+	return (result);
+}
+		
 void	floor_calc(t_info *info)
 {
 	int	x;
@@ -222,6 +236,8 @@ void	floor_calc(t_info *info)
 
 		while (x < info->winsize_w)
 		{
+		//	info->sh = sqrt((info->floor_x - info->pos_x) * (info->floor_x - info->pos_x) + (info->floor_y - info->pos_y) * (info->floor_y - info->pos_y));
+			info->sh = info->rowdist;
 			info->cell_x = (int)info->floor_x;
 			info->cell_y = (int)info->floor_y;
 
@@ -233,16 +249,17 @@ void	floor_calc(t_info *info)
 			if (info->is_floor)
 			{
 				if (info->floor_color == -1)
-					info->color = info->texture[info->texnum].data[info->texture[info->texnum].img_width * info->tex_x + info->tex_y];
+					info->color = info->texture[info->texnum].data[info->texture[info->texnum].img_width * info->tex_y + info->tex_x];
 				else
 					info->color = info->floor_color;
-				info->color = (info->color >> 1) & 8355711;
+				if (info->flag_sky != 1)
+					info->color = shade_color(info, info->sh, info->color);
 				info->buf[y][x] = info->color;
 			}
 			else
 			{
 				if (info->ceil_color == -1)
-					info->color = info->texture[info->texnum].data[info->texture[info->texnum].img_width * info->tex_x + info->tex_y];
+					info->color = info->texture[info->texnum].data[info->texture[info->texnum].img_width * info->tex_y + info->tex_x];
 				else
 					info->color = info->ceil_color;
 				if (info->flag_sky == 1)
@@ -253,6 +270,8 @@ void	floor_calc(t_info *info)
 					b = x * info->texture[5].img_height / info->winsize_w;
 					info->color = info->texture[5].data[b * info->texture[5].img_width + a];
 				}
+				if (info->flag_sky != 1)
+					info->color = shade_color(info, info->sh, info->color);
 				info->buf[y][x] = info->color;
 			}
 			x++;
@@ -364,10 +383,12 @@ void	calc(t_info *info)
 		{
 			info->tex_y = (int)(info->texpos) & (info->texture[info->texnum].img_height - 1);
 			info->texpos += info->step;
-		
+
+		//	info->sh = sqrt((info->map_x + 0.5 - info->pos_x) * (info->map_x + 0.5 - info->pos_x) + (info->map_y + 0.5 - info->pos_y) * (info->map_y + 0.5 - info->pos_y));
+			info->sh = info->perpwalldist;
 			info->color = info->texture[info->texnum].data[info->texture[info->texnum].img_width * info->tex_y + info->tex_x];
-			if (info->side == 1)
-				info->color = (info->color >> 1) & 8355711;
+			if (info->flag_sky != 1)
+				info->color = shade_color(info, info->sh, info->color);
 			info->buf[y][x] = info->color;
 			y++;
 		}
@@ -424,6 +445,7 @@ void	calc(t_info *info)
 				info->tex_x = (int)(256 * (x - (-info->sprite_w / 2 + info->spritescreen_x)) * texw / info->sprite_w) / 256;
 				if (info->transform_y > 0 && x > 0 && x < info->winsize_w && info->transform_y < info->zbuffer[x])
 				{
+					info->sh = sqrt((info->sprite_x * info->sprite_x) + (info->sprite_y * info->sprite_y));
 					y = info->drawstart_y;
 					while (y < info->drawend_y)
 					{
@@ -434,6 +456,8 @@ void	calc(t_info *info)
 							info->color = info->texture[info->sprite[info->sprite_order[i]].texture].data[texw * info->tex_x + info->tex_y];
 						if ((info->color & 0x00FFFFFF) != 0 && (info->color != 0x0000FF00) != 0)
 						{
+							if (info->flag_sky != 1)
+								info->color = shade_color(info, info->sh, info->color);
 							info->buf[y][x] = info->color;
 						}
 						y++;
@@ -570,7 +594,11 @@ void	draw_lifebar(t_info *info)
 		}
 		x++;
 	}
-	mlx_string_put(info->mlx, info->win, 0, (info->winsize_h * 2 / 3) + ((100 - info->hp) / 100) * h, 0x00FF00, hp_str);
+	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
+	if (((info->winsize_h * 2 / 3) + ((100 - info->hp) / 100) * h) < info->winsize_h - 20)
+		mlx_string_put(info->mlx, info->win, 0, (info->winsize_h * 2 / 3) + ((100 - info->hp) / 100) * h, 0x00FF00, hp_str);
+	else
+		mlx_string_put(info->mlx, info->win, 0, info->winsize_h - 20, 0x00FF00, hp_str);
 	free(hp_str);
 }
 
@@ -622,10 +650,7 @@ void	draw_rectangles(t_info *info)
 		j = 0;
 		while (j < info->map_w)
 		{
-			if (info->map[i][j] >= 1)
-				draw_rectangle(info, j, i);
-			else
-				draw_rectangle(info, j, i);
+			draw_rectangle(info, j, i);
 			j++;
 		}
 		i++;
@@ -661,8 +686,14 @@ int	main_loop(t_info *info)
 		draw_rectangles(info);
 		draw_point(info, 0);
 		draw_lifebar(info);
-		mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
 	}
+	if (info->hp <= 0)
+	{
+		write(1, "game over\n", 10);
+		all_free(info, &info->m);
+		exit(0);
+	}
+
 	if (info->flag_weap == 1)
 	{
 		int	a, b;
@@ -832,6 +863,8 @@ void	gun_shot(t_info *info)
 			remove_sprite(info, x, y);
 			break ;
 		}
+		else if ((x >= 0 && x < info->map_h) && (y >= 0 && y < info->map_w) && (info->map[x][y] == 1 || info->map[x][y] == 2))
+			break ;
 	}
 }
 

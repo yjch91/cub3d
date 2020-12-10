@@ -748,7 +748,7 @@ int	wall_check_up(t_map *m)
 		{
 			if (m->map[j][i] == 1)
 				break ;
-			else if (m->map[j][i] == 0 || m->map[j][i] == 2)
+			else if (m->map[j][i] == 0 || (m->map[j][i] >= 2 && m->map[j][i] <= 6))
 			{
 				write(1, "wall check up error\n", 20);
 				return (0);
@@ -773,7 +773,7 @@ int	wall_check_down(t_map *m)
 		{
 			if (m->map[j][i] == 1)
 				break ;
-			else if (m->map[j][i] == 0 || m->map[j][i] == 2)
+			else if (m->map[j][i] == 0 || (m->map[j][i] >= 2 && m->map[j][i] <= 6))
 			{
 				write(1, "wall check down error\n", 22);
 				return (0);
@@ -798,7 +798,7 @@ int	wall_check_left(t_map *m)
 		{
 			if (m->map[i][j] == 1)
 				break ;
-			else if (m->map[i][j] == 0 || m->map[i][j] == 2)
+			else if (m->map[i][j] == 0 || (m->map[i][j] >= 2 && m->map[i][j] <= 6))
 			{
 				write(1, "wall check left error\n", 22);
 				return (0);
@@ -823,7 +823,7 @@ int	wall_check_right(t_map *m)
 		{
 			if (m->map[i][j] == 1)
 				break ;
-			else if (m->map[i][j] == 0 || m->map[i][j] == 2)
+			else if (m->map[i][j] == 0 || (m->map[i][j] >= 2 && m->map[i][j] <= 6))
 			{
 				write(1, "wall check right error\n", 23);
 				return (0);
