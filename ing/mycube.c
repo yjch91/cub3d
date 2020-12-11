@@ -660,14 +660,13 @@ void	draw_rectangles(t_info *info)
 void	remove_sprite(t_info *info, int x, int y)
 {
 	int	i;
-	int pid;
 
 	i = 0;
 	while (i < info->sprite_count)
 	{
 		if ((int)info->sprite[i].x == x && (int)info->sprite[i].y == y)
 		{
-			pid = fork();
+		/*	int pid = fork();
 			if (pid == 0)
 			{
 				if (info->sprite[i].texture == 7)
@@ -679,7 +678,15 @@ void	remove_sprite(t_info *info, int x, int y)
 				info->pid = -1;
 				all_free(info, &info->m);
 				exit(0);
-			}
+			}*/
+			// bgm ver2
+			
+			if (info->sprite[i].texture == 7)
+				system("afplay ./sound/hit.wav &");
+			else if (info->sprite[i].texture == 8)
+				system("afplay ./sound/heal.wav &");
+			else if (info->sprite[i].texture == 9)
+				system("afplay ./sound/poison.wav &");
 			info->sprite[i].texture = -1;
 			break ;
 		}
@@ -924,14 +931,16 @@ int	key_press(int key, t_info *info)
 	{
 		info->flag_shot = 1;
 		gun_shot(info);
-		int pid = fork();
+	/*	int pid = fork();
 		if (pid == 0)
 		{
 			system("afplay ./sound/attack.wav");
 			info->pid = -1;
 			all_free(info, &info->m);
 			exit(0);
-		}
+		}*/
+		// bgm ver2
+		system("afplay ./sound/attack.wav &");
 	}
 	return (0);
 }
@@ -1081,8 +1090,8 @@ void	all_free(t_info *info, t_map *m)
 		free(info->sprite_order);
 	if (info->sprite_dist != 0)
 		free(info->sprite_dist);
-	if (info->pid != -1)
-	{
+//	if (info->pid != -1)
+//	{
 	if (info->img.img != 0)
 		mlx_destroy_image(info->mlx, info->img.img);
 	i = -1;
@@ -1092,8 +1101,10 @@ void	all_free(t_info *info, t_map *m)
 	if (info->win != 0)
 		mlx_destroy_window(info->mlx, info->win);
 	free(info->mlx);
-	kill(info->pid + 1, SIGTERM);
-	}
+	// bgm ver2
+	system("killall afplay");
+//	kill(info->pid + 1, SIGTERM);
+//	}
 }
 
 int	sprite_alloc_fail(t_info *info, t_map *m)

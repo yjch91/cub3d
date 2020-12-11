@@ -938,7 +938,8 @@ int	main(int argc, char **argv)
 
 
 		m.pid = 0;
-		m.pid = fork();
+		
+	/*	m.pid = fork();
 		if (m.pid == 0)
 		{
 			map_array_free(&m, m.map_x, 1);
@@ -947,7 +948,12 @@ int	main(int argc, char **argv)
 		else
 		{
 			cub_play(&m);
-		}
+		}*/
+
+		// bgm ver2
+		if (m.bonus_on == 1 && m.bitmap_check == 0)
+			system("afplay ./sound/bgm.mp3 &");
+		cub_play(&m);
 
 /*		printf(" ---------------\n");
 		printf("dir %c x = %d y = %d\n", m.start_dir, m.start_x, m.start_y);
