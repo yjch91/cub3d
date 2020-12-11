@@ -936,17 +936,18 @@ int	main(int argc, char **argv)
 			return (0);
 		get_sprite_count(&m);
 
-	//	system("killall afplay");
-	//	system("afplay -v 0.30 ./sound/bgm.mp3 &>/dev/null &");
 
-		/*
 		m.pid = 0;
 		m.pid = fork();
 		if (m.pid == 0)
-			system("afplay ./sound/bgm.mp3 -v 1");
-		if (m.pid != 0)*/
-		cub_play(&m);
-	//	system("killall afplay");
+		{
+			map_array_free(&m, m.map_x, 1);
+			system("afplay ./sound/bgm.mp3");
+		}
+		else
+		{
+			cub_play(&m);
+		}
 
 /*		printf(" ---------------\n");
 		printf("dir %c x = %d y = %d\n", m.start_dir, m.start_x, m.start_y);

@@ -421,7 +421,7 @@ void	calc(t_info *info)
 	
 			info->spritescreen_x = (int)((info->winsize_w / 2) * (1 + info->transform_x / info->transform_y));
 	
-			info->sprite_h = abs((int)(info->winsize_h / info->transform_y));
+			info->sprite_h = fabs(info->winsize_h / info->transform_y);
 			info->drawstart_y = -info->sprite_h / 2 + info->winsize_h / 2 + info->pitch + (info->jump / info->transform_y);
 			if (info->drawstart_y < 0)
 				info->drawstart_y = 0;
@@ -429,7 +429,7 @@ void	calc(t_info *info)
 			if (info->drawend_y >= info->winsize_h)
 				info->drawend_y = info->winsize_h - 1;
 	
-			info->sprite_w = abs((int)(info->winsize_h / info->transform_y));
+			info->sprite_w = fabs(info->winsize_h / info->transform_y);
 			info->drawstart_x = -info->sprite_w / 2 + info->spritescreen_x;
 			if (info->drawstart_x < 0)
 				info->drawstart_x = 0;
@@ -450,7 +450,7 @@ void	calc(t_info *info)
 					while (y < info->drawend_y)
 					{
 						info->tex_y = ((int)(256 * (y - info->pitch - (info->jump / info->transform_y) - info->winsize_h / 2 + info->sprite_h / 2)) * texw / info->sprite_h) / 256;
-						if (info->sprite[info->sprite_order[i]].texture == 6)
+						if (info->sprite[info->sprite_order[i]].texture == 6 || info->sprite[info->sprite_order[i]].texture == 7)
 							info->color = info->texture[info->sprite[info->sprite_order[i]].texture].data[texw * info->tex_y + info->tex_x];
 						else
 							info->color = info->texture[info->sprite[info->sprite_order[i]].texture].data[texw * info->tex_x + info->tex_y];
@@ -660,12 +660,26 @@ void	draw_rectangles(t_info *info)
 void	remove_sprite(t_info *info, int x, int y)
 {
 	int	i;
+	int pid;
 
 	i = 0;
 	while (i < info->sprite_count)
 	{
 		if ((int)info->sprite[i].x == x && (int)info->sprite[i].y == y)
 		{
+			pid = fork();
+			if (pid == 0)
+			{
+				if (info->sprite[i].texture == 7)
+					system("afplay ./sound/hit.wav");
+				else if (info->sprite[i].texture == 8)
+					system("afplay ./sound/heal.wav");
+				else if (info->sprite[i].texture == 9)
+					system("afplay ./sound/poison.wav");
+				info->pid = -1;
+				all_free(info, &info->m);
+				exit(0);
+			}
 			info->sprite[i].texture = -1;
 			break ;
 		}
@@ -910,14 +924,14 @@ int	key_press(int key, t_info *info)
 	{
 		info->flag_shot = 1;
 		gun_shot(info);
-/*		int pid = fork();
-		if (pid == 0)
-			system("afplay ./sound/attack.wav");
+		int pid = fork();
 		if (pid == 0)
 		{
+			system("afplay ./sound/attack.wav");
+			info->pid = -1;
 			all_free(info, &info->m);
 			exit(0);
-		}*/
+		}
 	}
 	return (0);
 }
@@ -1067,6 +1081,8 @@ void	all_free(t_info *info, t_map *m)
 		free(info->sprite_order);
 	if (info->sprite_dist != 0)
 		free(info->sprite_dist);
+	if (info->pid != -1)
+	{
 	if (info->img.img != 0)
 		mlx_destroy_image(info->mlx, info->img.img);
 	i = -1;
@@ -1076,8 +1092,8 @@ void	all_free(t_info *info, t_map *m)
 	if (info->win != 0)
 		mlx_destroy_window(info->mlx, info->win);
 	free(info->mlx);
-
-	//kill(info->pid + 1, SIGTERM);
+	kill(info->pid + 1, SIGTERM);
+	}
 }
 
 int	sprite_alloc_fail(t_info *info, t_map *m)
@@ -1198,7 +1214,7 @@ void	cub_play(t_map *m)
 		get_imagedata(&info, m->ceil, 5);
 	}
 	get_imagedata(&info, m->item, 6);
-	get_imagedata(&info, "./textures/guard.xpm", 7);
+	get_imagedata(&info, "./textures/sp1.xpm", 7);
 	get_imagedata(&info, "./textures/health_s.xpm", 8);
 	get_imagedata(&info, "./textures/health_b.xpm", 9);
 	get_imagedata(&info, "./textures/weap_spr.xpm", 10);
