@@ -6,11 +6,12 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 10:39:42 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:39:58 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/12 22:45:49 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef KEY_MACOS_H
+
 # define KEY_MACOS_H
 
 # define K_A 0
