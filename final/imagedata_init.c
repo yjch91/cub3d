@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:57:39 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:57:10 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/24 20:57:03 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,17 @@ static void	get_imagedata(t_info *info, char *path, int n)
 	}
 }
 
+static void	imagedata_init2(t_info *info)
+{
+	get_imagedata(info, "./textures/robot.xpm", 7);
+	get_imagedata(info, "./textures/health_s.xpm", 8);
+	get_imagedata(info, "./textures/health_b.xpm", 9);
+	get_imagedata(info, "./textures/weap_spr.xpm", 10);
+	get_imagedata(info, "./textures/crosshair.xpm", 11);
+	get_imagedata(info, "./textures/M2GFB0.xpm", 12);
+	get_imagedata(info, "./textures/M2GFA0.xpm", 13);
+}		
+
 void		imagedata_init(t_info *info, t_map *m)
 {
 	int	i;
@@ -55,11 +66,6 @@ void		imagedata_init(t_info *info, t_map *m)
 		get_imagedata(info, m->ceil, 5);
 	}
 	get_imagedata(info, m->item, 6);
-	get_imagedata(info, "./textures/robot.xpm", 7);
-	get_imagedata(info, "./textures/health_s.xpm", 8);
-	get_imagedata(info, "./textures/health_b.xpm", 9);
-	get_imagedata(info, "./textures/weap_spr.xpm", 10);
-	get_imagedata(info, "./textures/crosshair.xpm", 11);
-	get_imagedata(info, "./textures/M2GFB0.xpm", 12);
-	get_imagedata(info, "./textures/M2GFA0.xpm", 13);
+	if (info->bonus_on == 1)
+		imagedata_init2(info);
 }

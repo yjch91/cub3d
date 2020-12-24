@@ -40,9 +40,8 @@ ${LIBOPENGL}:
 			${MAKE} -C ./mini_opengl
 
 ${NAME}:	${OBJS} ${MAINOBJS} ${LIBMMS} ${LIBOPENGL}
-			cp ./mini_opengl/libmlx.a ./
 			cp ./minilibx_mms/libmlx.dylib ./
-			${CC} -lmlx ${CFLAGS_MLX} ${OBJS} ${MAINOBJS} ${LIBMMS} ${LIBOPENGL} -o ${NAME}
+			${CC} -L./mini_opengl -lmlx ${CFLAGS_MLX} ${OBJS} ${MAINOBJS} ${LIBMMS} -o ${NAME}
 			
 clean:
 		rm -f ${OBJS} ${MAINOBJS} ${BMAINOBJS} ${LIBMMS} ${LIBOPENGL}
@@ -55,8 +54,7 @@ fclean:	clean
 re:		fclean ${NAME}
 
 bonus:	${OBJS} ${BMAINOBJS} ${LIBMMS} ${LIBOPENGL}
-		cp ./mini_opengl/libmlx.a ./
 		cp ./minilibx_mms/libmlx.dylib ./
-		${CC} -lmlx ${CFLAGS_MLX} ${OBJS} ${BMAINOBJS} ${LIBMMS} ${LIBOPENGL} -o ${NAME}
+		${CC} -L./mini_opengl -lmlx ${CFLAGS_MLX} ${OBJS} ${BMAINOBJS} ${LIBMMS} -o ${NAME}
 
 .PHONY:	all clean fclean re
