@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:57:39 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/24 20:57:03 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/25 06:35:55 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,14 +44,14 @@ static void	imagedata_init2(t_info *info)
 	get_imagedata(info, "./textures/crosshair.xpm", 11);
 	get_imagedata(info, "./textures/M2GFB0.xpm", 12);
 	get_imagedata(info, "./textures/M2GFA0.xpm", 13);
-}		
+}
 
 void		imagedata_init(t_info *info, t_map *m)
 {
 	int	i;
 
 	i = -1;
-	while (++i < 12)
+	while (++i < 14)
 		info->texture[i].img = 0;
 	get_imagedata(info, m->north, 0);
 	get_imagedata(info, m->south, 1);

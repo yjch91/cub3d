@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 07:09:36 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 07:13:01 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/25 06:36:40 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,14 +19,15 @@ void	control_weap(t_info *info)
 
 	a = info->winsize_w - 460;
 	b = info->winsize_h - 300;
-	if (a < 0 || a < info->winsize_w / 2)
-		a = info->winsize_w / 4;
-	if (b < 0 || b < info->winsize_h / 2)
-		b = info->winsize_h / 2;
+	if (a < 0 || a < info->winsize_w / 3)
+		a = info->winsize_w - 200;
+	if (b < 0 || b < info->winsize_h / 3)
+		b = info->winsize_h - 200;
 	mlx_put_image_to_window(info->mlx, info->win,
 			info->texture[12 + info->flag_shot].img, a, b);
 	mlx_put_image_to_window(info->mlx, info->win,
-			info->texture[11].img, info->winsize_w / 2, info->winsize_h / 2);
+			info->texture[11].img,
+			info->winsize_w / 2 - 17, info->winsize_h / 2 - 17);
 }
 
 void	weap_shot(t_info *info)
