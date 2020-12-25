@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   mycube.c                                           :+:      :+:    :+:   */
+/*   cub_play.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 04:10:35 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:53:47 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 04:30:46 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,10 @@ void		cub_play(t_map *m)
 	winsize_init(&info, m);
 	info_init2(&info);
 	if (buf_alloc_init(&info, m) == 0)
+	{
+		kill_afplay(&info);
 		return ;
+	}
 	if (sprite_alloc(&info, m) == 0)
 		return ;
 	imagedata_init(&info, m);

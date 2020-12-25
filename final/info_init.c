@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 07:51:44 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 09:01:08 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 04:21:41 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,8 @@ void		info_init(t_info *info, t_map *m)
 	{
 		write(1, "error : mlx_init result = NULL\n", 31);
 		map_array_free(m, m->map_x, 1);
+		if (m->bonus_on == 1 && m->bitmap_check != 1)
+			system("killall afplay");
 		exit(0);
 	}
 	info->img.img = 0;
