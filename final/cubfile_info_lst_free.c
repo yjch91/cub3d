@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 10:09:19 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:10:25 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 17:48:03 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void	cubfile_info_free(t_map *m, int n)
 	if (m->size != 0)
 		free(m->size);
 	if (n == -1)
-		write(1, "error : get_next_line return value -1\n", 38);
+		write(1, "get_next_line return value -1 Error\n", 36);
 }
 
 void	cubfile_info_lst_free(t_map *m, int n)

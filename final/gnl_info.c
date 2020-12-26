@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:42:59 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:28:31 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 17:49:58 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ static int	entering_info(char **info, char *data)
 	*info = data;
 	if (*info == 0)
 	{
-		write(1, "malloc allocation fail\n", 23);
+		write(1, "malloc allocation fail Error\n", 29);
 		return (-1);
 	}
 	return (1);
@@ -63,7 +63,7 @@ int			gnl_info(t_map *m, int n)
 			if (line[0] != '\0')
 			{
 				write(1, line, ft_strlen(line));
-				write(1, " : this line error\n", 19);
+				write(1, " : this line Error\n", 19);
 				cubfile_info_free(m, 0);
 				r = -1;
 			}

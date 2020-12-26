@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:17:26 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 09:34:56 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 17:49:05 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ void		map_array_free(t_map *m, int n, int type)
 	free(m->map);
 	cubfile_info_lst_free(m, 0);
 	if (type == 0)
-		write(1, "malloc allocation fail\n", 23);
+		write(1, "malloc allocation fail Error\n", 29);
 }
 
 static int	fill_map_array2(t_map *m)
@@ -85,7 +85,7 @@ int			fill_map_array(t_map *m)
 	if ((m->map = (int **)malloc(sizeof(int *) * m->map_x)) == 0)
 	{
 		cubfile_info_lst_free(m, 0);
-		write(1, "malloc allocation fail\n", 23);
+		write(1, "malloc allocation fail Error\n", 29);
 		return (0);
 	}
 	if (fill_map_array2(m) == 0)

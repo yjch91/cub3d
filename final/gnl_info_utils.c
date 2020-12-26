@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:45:00 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:11:15 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 17:50:23 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ int		resolution_check(t_map *m)
 		i++;
 	if (m->size[i] != '\0' || m->w == 0 || m->h == 0)
 	{
-		write(1, "resolution error\n", 17);
+		write(1, "resolution Error\n", 17);
 		cubfile_info_free(m, 0);
 		return (0);
 	}
@@ -48,7 +48,7 @@ int		info_full_check(t_map *m)
 	if (info_null_check(m) == 0)
 	{
 		cubfile_info_free(m, 0);
-		write(1, "cub file infomation error\n", 26);
+		write(1, "cub file infomation Error\n", 26);
 		return (0);
 	}
 	return (1);

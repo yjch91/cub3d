@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 10:24:45 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 22:46:22 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 18:41:31 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ static int	cubfile_open(t_map *m, int argc, char **argv)
 	c = ft_strnstr(argv[1], ".cub", ft_strlen(argv[1]));
 	if (c == 0 || ft_strlen(c) != 4)
 	{
-		write(1, "first argument is no .cub file\n", 31);
+		write(1, "first argument is no .cub file Error\n", 37);
 		return (0);
 	}
 	if ((m->fd = open(argv[1], O_RDONLY)) < 0)
@@ -52,7 +52,7 @@ static int	cubfile_open(t_map *m, int argc, char **argv)
 		c = ft_strnstr(argv[2], "--save", 6);
 		if (c == 0 || ft_strlen(argv[2]) != 6)
 		{
-			write(1, "second argument is no \"--save\"\n", 31);
+			write(1, "second argument is no \"--save\" Error\n", 37);
 			close(m->fd);
 			return (0);
 		}
@@ -70,7 +70,7 @@ static int	map_parsing(t_map *m)
 	}
 	if (close(m->fd) < 0)
 	{
-		write(1, "close error\n", 12);
+		write(1, "close Error\n", 12);
 		return (0);
 	}
 	if (fill_map_array(m) == 0 || wall_check(m) == 0)
@@ -96,6 +96,6 @@ int			main(int argc, char **argv)
 		cub_play(&m);
 	}
 	else
-		write(1, "argument error : program [.cub] ([--save]) is not\n", 50);
+		write(1, "argument is no < program [.cub] ([--save]) > Error\n", 51);
 	return (0);
 }

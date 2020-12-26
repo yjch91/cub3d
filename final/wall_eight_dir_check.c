@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:09:51 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 09:15:24 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 17:56:55 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ int			wall_eight_dir_check(t_map *m)
 			{
 				if (eight_dir_check(m, i, j) == 0)
 				{
-					write(1, "wall check eight dir check error\n", 33);
+					write(1, "wall check eight dir check Error\n", 33);
 					return (0);
 				}
 			}

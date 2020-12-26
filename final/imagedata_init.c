@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:57:39 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/25 06:35:55 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 18:14:59 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ static void	get_imagedata(t_info *info, char *path, int n)
 					&info->texture[n].img_height)) == 0)
 	{
 		perror(path);
+		write(1, "Error\n", 6);
 		all_free(info, &info->m);
 		exit(0);
 	}

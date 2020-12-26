@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:07:29 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:33:20 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 17:56:35 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ static int	wall_check_up(t_map *m)
 			else if (m->map[j][i] == 0 ||
 					(m->map[j][i] >= 2 && m->map[j][i] <= 6))
 			{
-				write(1, "wall check up error\n", 20);
+				write(1, "wall check up Error\n", 20);
 				return (0);
 			}
 			j++;
@@ -54,7 +54,7 @@ static int	wall_check_down(t_map *m)
 			else if (m->map[j][i] == 0 ||
 					(m->map[j][i] >= 2 && m->map[j][i] <= 6))
 			{
-				write(1, "wall check down error\n", 22);
+				write(1, "wall check down Error\n", 22);
 				return (0);
 			}
 			j--;
@@ -80,7 +80,7 @@ static int	wall_check_left(t_map *m)
 			else if (m->map[i][j] == 0 ||
 					(m->map[i][j] >= 2 && m->map[i][j] <= 6))
 			{
-				write(1, "wall check left error\n", 22);
+				write(1, "wall check left Error\n", 22);
 				return (0);
 			}
 			j++;
@@ -106,7 +106,7 @@ static int	wall_check_right(t_map *m)
 			else if (m->map[i][j] == 0 ||
 					(m->map[i][j] >= 2 && m->map[i][j] <= 6))
 			{
-				write(1, "wall check right error\n", 23);
+				write(1, "wall check right Error\n", 23);
 				return (0);
 			}
 			j--;

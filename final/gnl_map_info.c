@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:38:35 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:45:13 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 17:54:39 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ static int	gnl_map_info_push_list(t_map *m, char *line)
 
 	if (g_map_empty == 1)
 	{
-		write(1, "map error : emptyline\n", 22);
+		write(1, "map error : emptyline Error\n", 28);
 		cubfile_info_lst_free(m, 0);
 		free(line);
 		return (0);
@@ -26,7 +26,7 @@ static int	gnl_map_info_push_list(t_map *m, char *line)
 	g_map_empty = 0;
 	if ((temp = ft_lstnew(line)) == 0)
 	{
-		write(1, "malloc allocation fail\n", 23);
+		write(1, "malloc allocation fail Error\n", 29);
 		cubfile_info_lst_free(m, 0);
 		free(line);
 		return (0);
@@ -87,7 +87,7 @@ static int	gnl_map_error_check(t_map *m, char *line)
 	else if (line[0] != '\0')
 	{
 		write(1, line, ft_strlen(line));
-		write(1, " : this line map error\n", 23);
+		write(1, " : this line map Error\n", 23);
 		cubfile_info_lst_free(m, 0);
 		free(line);
 		return (0);
@@ -113,12 +113,12 @@ int			gnl_map_info(t_map *m, int n)
 			return (0);
 	}
 	if (n != -1 && m->start_dir == 0)
-		write(1, "no starting direction error\n", 28);
+		write(1, "no starting direction Error\n", 28);
 	if (n == -1 || m->start_dir == 0)
 	{
 		cubfile_info_lst_free(m, 0);
 		if (n == -1)
-			write(1, "error : get_next_line return value -1\n", 38);
+			write(1, "get_next_line return value -1 Error\n", 36);
 		return (0);
 	}
 	free(line);
