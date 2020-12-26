@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:51:58 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/26 18:36:23 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 18:55:06 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,9 +93,10 @@ int			info_check(t_map *m)
 		cubfile_info_free(m, 0);
 		return (0);
 	}
-	if (info_empty_check(m) == 0 || xpmfile_check(m) == 0 || directory_check(m) == 0)
+	if (info_empty_check(m) == 0 || xpmfile_check(m) == 0 ||
+		directory_check(m) == 0)
 	{
-		write(1, "tex info are empty or not .xpm or wrong directory Error\n", 56);
+		write(1, "tex info empty or not .xpm or wrong directory Error\n", 52);
 		cubfile_info_free(m, 0);
 		return (0);
 	}

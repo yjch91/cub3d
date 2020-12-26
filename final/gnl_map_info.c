@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:38:35 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/26 17:54:39 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/26 18:50:01 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ static int	gnl_map_info_push_list(t_map *m, char *line)
 
 	if (g_map_empty == 1)
 	{
-		write(1, "map error : emptyline Error\n", 28);
+		write(1, "map : emptyline Error\n", 22);
 		cubfile_info_lst_free(m, 0);
 		free(line);
 		return (0);
