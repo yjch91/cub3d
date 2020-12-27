@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:57:39 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/26 18:14:59 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 04:09:24 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,11 +49,6 @@ static void	imagedata_init2(t_info *info)
 
 void		imagedata_init(t_info *info, t_map *m)
 {
-	int	i;
-
-	i = -1;
-	while (++i < 14)
-		info->texture[i].img = 0;
 	get_imagedata(info, m->north, 0);
 	get_imagedata(info, m->south, 1);
 	get_imagedata(info, m->east, 2);
@@ -69,4 +64,22 @@ void		imagedata_init(t_info *info, t_map *m)
 	get_imagedata(info, m->item, 6);
 	if (info->bonus_on == 1)
 		imagedata_init2(info);
+}
+
+void		img_init(t_info *info, t_map *m, t_img *img)
+{
+	if ((img->img = mlx_new_image(
+					info->mlx, info->winsize_w, info->winsize_h)) == 0)
+	{
+		all_free(info, m);
+		write(1, "error : mlx_new_image return = NULL\n", 36);
+		exit(0);
+	}
+	if ((img->data = (int *)mlx_get_data_addr(img->img,
+					&img->bpp, &img->size_l, &img->endian)) == 0)
+	{
+		all_free(info, m);
+		write(1, "error : mlx_get_data_addr return = NULL\n", 40);
+		exit(0);
+	}
 }

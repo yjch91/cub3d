@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:43:44 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 08:45:10 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 02:47:28 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,8 @@ static void	ceilfloor_calc2(t_info *info)
 static void	fill_floor_color(t_info *info)
 {
 	if (info->floor_color == -1)
-		info->color = info->texture[info->texnum].data[
-			info->texture[info->texnum].img_width * info->tex_y + info->tex_x];
+		info->color = info->texture[info->texnum].data[(info->
+				texture[info->texnum].size_l / 4) * info->tex_y + info->tex_x];
 	else
 		info->color = info->floor_color;
 	if (info->flag_sky != 1 && info->bonus_on == 1)
@@ -74,15 +74,16 @@ static void	fill_ceil_color(t_info *info, int x, int y)
 	if (info->flag_sky == 1)
 	{
 		a = y * info->texture[5].img_width / info->winsize_h;
-		a = info->texture[5].img_width - a + 1;
+		a = info->texture[5].img_width - a - 1;
 		b = x * info->texture[5].img_height / info->winsize_w;
-		info->color = info->texture[5].data[b * info->texture[5].img_width + a];
+		info->color = info->texture[5].data[
+				b * (info->texture[5].size_l / 4) + a];
 	}
 	else if (info->flag_sky != 1)
 	{
 		if (info->ceil_color == -1)
-			info->color = info->texture[info->texnum].data[info->
-				texture[info->texnum].img_width * info->tex_y + info->tex_x];
+			info->color = info->texture[info->texnum].data[(info->texture[
+					info->texnum].size_l / 4) * info->tex_y + info->tex_x];
 		else
 			info->color = info->ceil_color;
 		if (info->bonus_on == 1)

@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:40:06 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 08:40:58 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 02:15:35 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ static void	put_image_map_lifebar(t_info *info, int h)
 	char*hp_str;
 
 	hp_str = ft_itoa((int)info->hp);
-	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
+	mlx_put_image_to_window(info->mlx, info->win, info->img2.img, 0, 0);
 	if (((info->winsize_h * 2 / 3) + ((100 - info->hp) / 100) * h) <
 			info->winsize_h - 20)
 		mlx_string_put(info->mlx, info->win, 0,
@@ -51,7 +51,7 @@ void		draw_lifebar(t_info *info)
 	{
 		y = (info->winsize_h * 2 / 3) + ((100 - info->hp) / 100 * h) - 1;
 		while (++y < info->winsize_h)
-			info->img.data[y * info->winsize_w + x] = 0xAAFF0000;
+			info->img2.data[y * (info->img2.size_l / 4) + x] = 0xAAFF0000;
 	}
 	put_image_map_lifebar(info, h);
 }

@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:51:58 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/26 18:55:06 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 18:07:53 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,34 @@ static int	xpmfile_check(t_map *m)
 	return (1);
 }
 
+static int	file_space_check(t_map *m)
+{
+	char	*c;
+
+	c = ft_strnstr(m->north, " ", ft_strlen(m->north));
+	if (c != 0)
+		return (0);
+	c = ft_strnstr(m->south, " ", ft_strlen(m->south));
+	if (c != 0)
+		return (0);
+	c = ft_strnstr(m->west, " ", ft_strlen(m->west));
+	if (c != 0)
+		return (0);
+	c = ft_strnstr(m->east, " ", ft_strlen(m->east));
+	if (c != 0)
+		return (0);
+	c = ft_strnstr(m->item, " ", ft_strlen(m->item));
+	if (c != 0)
+		return (0);
+	c = ft_strnstr(m->floor, " ", ft_strlen(m->floor));
+	if (m->floor_color == -1 && c != 0)
+		return (0);
+	c = ft_strnstr(m->ceil, " ", ft_strlen(m->ceil));
+	if (m->ceil_color == -1 && c != 0)
+		return (0);
+	return (1);
+}
+
 int			info_check(t_map *m)
 {
 	if (floor_ceil_check(m, m->floor, 0) == 0)
@@ -94,7 +122,7 @@ int			info_check(t_map *m)
 		return (0);
 	}
 	if (info_empty_check(m) == 0 || xpmfile_check(m) == 0 ||
-		directory_check(m) == 0)
+		directory_check(m) == 0 || file_space_check(m) == 0)
 	{
 		write(1, "tex info empty or not .xpm or wrong directory Error\n", 52);
 		cubfile_info_free(m, 0);

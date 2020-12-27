@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:54:32 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:56:24 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 02:25:06 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,29 +68,29 @@ static void	sprite_calc2(t_info *info)
 static void	fill_sprite_color(t_info *info, int i, int x, int texw)
 {
 	int	y;
+	int	n;
 
 	info->sh = sqrt((info->sprite_x * info->sprite_x) +
 			(info->sprite_y * info->sprite_y));
-	y = info->drawstart_y;
-	while (y < info->drawend_y)
+	y = info->drawstart_y - 1;
+	while (++y < info->drawend_y)
 	{
 		info->tex_y = ((int)(256 * (y - info->pitch -
 						(info->jump / info->transform_y) - info->winsize_h / 2 +
 						info->sprite_h / 2)) * texw / info->sprite_h) / 256;
-		if (info->sprite[info->sprite_order[i]].texture == 6 ||
-				info->sprite[info->sprite_order[i]].texture == 7)
-			info->color = info->texture[info->sprite[info->sprite_order[i]].
-				texture].data[texw * info->tex_y + info->tex_x];
+		n = info->sprite[info->sprite_order[i]].texture;
+		if (n == 6 || n == 7)
+			info->color = info->texture[n].data[
+				(info->texture[n].size_l / 4) * info->tex_y + info->tex_x];
 		else
-			info->color = info->texture[info->sprite[info->sprite_order[i]].
-				texture].data[texw * info->tex_x + info->tex_y];
+			info->color = info->texture[n].data[
+				(info->texture[n].size_l / 4) * info->tex_x + info->tex_y];
 		if ((info->color & 0x00FFFFFF) != 0 && (info->color != 0x0000FF00) != 0)
 		{
 			if (info->flag_sky != 1 && info->bonus_on == 1)
 				info->color = shade_color(info->sh, info->color);
 			info->buf[y][x] = info->color;
 		}
-		y++;
 	}
 }
 

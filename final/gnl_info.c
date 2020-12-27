@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:42:59 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/26 17:49:58 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 19:00:38 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,17 @@ static int	gnl_info2(t_map *m, char *line)
 		return (0);
 	if (n == -1)
 		cubfile_info_free(m, 0);
-	free(line);
 	return (n);
+}
+
+static int	gnl_info3(t_map *m, int n)
+{
+	if (n == -1)
+		cubfile_info_free(m, -1);
+	if (n == -1 || info_full_check(m) == 0 ||
+		info_check(m) == 0 || resolution_check(m) == 0)
+		return (0);
+	return (1);
 }
 
 int			gnl_info(t_map *m, int n)
@@ -56,6 +65,7 @@ int			gnl_info(t_map *m, int n)
 	char	*line;
 	int		r;
 
+	line = 0;
 	while (info_null_check(m) == 0 && (n = get_next_line(m->fd, &line)) > 0)
 	{
 		if ((r = gnl_info2(m, line)) == 0)
@@ -67,15 +77,14 @@ int			gnl_info(t_map *m, int n)
 				cubfile_info_free(m, 0);
 				r = -1;
 			}
-			free(line);
 		}
+		free(line);
+		line = 0;
 		if (r == -1)
 			return (0);
 	}
-	if (n == -1)
-		cubfile_info_free(m, -1);
-	if (n == -1 || info_full_check(m) == 0 ||
-			info_check(m) == 0 || resolution_check(m) == 0)
-		return (0);
-	return (1);
+	if (line != 0)
+		free(line);
+	r = gnl_info3(m, n);
+	return (r);
 }

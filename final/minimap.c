@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:34:13 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 08:39:43 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 20:29:13 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void		draw_point(t_info *info, int size)
 		j = x - (size / 2);
 		while (j < x + (size / 2))
 		{
-			info->img.data[i * info->winsize_w + j] = 0xAA0000FF;
+			info->img2.data[i * (info->img2.size_l / 4) + j] = 0xAA0000FF;
 			j++;
 		}
 		i++;
@@ -64,7 +64,25 @@ static void	draw_rectangle(t_info *info, int x, int y, int color)
 		j = 0;
 		while (j < p)
 		{
-			info->img.data[(y + i) * info->winsize_w + x + j] = color;
+			info->img2.data[(y + i) * (info->img2.size_l / 4) + x + j] = color;
+			j++;
+		}
+		i++;
+	}
+}
+
+static void	map_lifebar_img_init(t_info *info)
+{
+	int	i;
+	int	j;
+
+	i = 0;
+	while (i < info->winsize_h)
+	{
+		j = 0;
+		while (j < info->winsize_w)
+		{
+			info->img2.data[i * (info->img2.size_l / 4) + j] = 0xFFFFFFFF;
 			j++;
 		}
 		i++;
@@ -77,6 +95,7 @@ void		draw_rectangles(t_info *info)
 	int	j;
 	int	color;
 
+	map_lifebar_img_init(info);
 	i = 0;
 	while (i < info->map_h)
 	{
@@ -85,7 +104,7 @@ void		draw_rectangles(t_info *info)
 		{
 			if (info->map[i][j] == 1)
 				color = 0xAAFFFFFF;
-			else if (info->map[i][j] >= 2)
+			else if (info->map[i][j] >= 2 && info->map[i][j] <= 6)
 				color = 0xAAFF0000;
 			else
 				color = 0xAA000000;

@@ -6,29 +6,11 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 03:26:04 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:10:55 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 19:01:34 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "cub3d.h"
-
-char	*ft_strdup_size(const char *s1, int left, int right)
-{
-	int		i;
-	char	*temp;
-
-	temp = (char *)malloc(sizeof(char) * (right - left + 1));
-	if (temp == 0)
-		return (0);
-	temp[right - left] = '\0';
-	i = 0;
-	while (i < (right - left))
-	{
-		temp[i] = s1[left + i];
-		i++;
-	}
-	return (temp);
-}
 
 int		ft_strlen(const char *s)
 {

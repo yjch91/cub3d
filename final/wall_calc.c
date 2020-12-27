@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:49:58 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 09:18:40 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 02:23:18 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,8 +98,8 @@ static void	fill_wall_color(t_info *info, int x)
 			(info->texture[info->texnum].img_height - 1);
 		info->texpos += info->step;
 		info->sh = info->perpwalldist;
-		info->color = info->texture[info->texnum].data[
-			info->texture[info->texnum].img_width * info->tex_y + info->tex_x];
+		info->color = info->texture[info->texnum].data[(info->
+			texture[info->texnum].size_l / 4) * info->tex_y + info->tex_x];
 		if (info->flag_sky != 1 && info->bonus_on == 1)
 			info->color = shade_color(info->sh, info->color);
 		info->buf[y][x] = info->color;

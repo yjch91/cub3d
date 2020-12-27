@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 07:51:44 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/26 04:21:41 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 03:27:53 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,7 @@ void		info_init(t_info *info, t_map *m)
 		exit(0);
 	}
 	info->img.img = 0;
+	info->img2.img = 0;
 	info->win = 0;
 	info->bonus_on = m->bonus_on;
 	info->movespeed = 0.05;
@@ -92,6 +93,8 @@ void		winsize_init(t_info *info, t_map *m)
 
 void		info_init2(t_info *info)
 {
+	int i;
+
 	info->pitch = 0;
 	info->jump = 0;
 	info->hp = 100;
@@ -105,29 +108,18 @@ void		info_init2(t_info *info)
 	info->flag_sky = 0;
 	info->flag_weap = 0;
 	info->flag_shot = 0;
+	i = -1;
+	while (++i < 14)
+		info->texture[i].img = 0;
 }
 
-void		win_img_init(t_info *info, t_map *m)
+void		win_init(t_info *info, t_map *m)
 {
 	if ((info->win = mlx_new_window(
 					info->mlx, info->winsize_w, info->winsize_h, "cub3D")) == 0)
 	{
 		all_free(info, m);
 		write(1, "error : mlx_new_window return = NULL\n", 37);
-		exit(0);
-	}
-	if ((info->img.img = mlx_new_image(
-					info->mlx, info->winsize_w, info->winsize_h)) == 0)
-	{
-		all_free(info, m);
-		write(1, "error : mlx_new_image return = NULL\n", 36);
-		exit(0);
-	}
-	if ((info->img.data = (int *)mlx_get_data_addr(info->img.img,
-					&info->img.bpp, &info->img.size_l, &info->img.endian)) == 0)
-	{
-		all_free(info, m);
-		write(1, "error : mlx_get_data_addr return = NULL\n", 40);
 		exit(0);
 	}
 }

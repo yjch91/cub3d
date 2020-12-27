@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 10:24:35 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/26 18:39:58 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 16:58:27 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,12 +85,21 @@ int			main(int argc, char **argv)
 
 	map_init(&m);
 	m.bonus_on = 0;
+	g_save = 0;
 	if (argc == 2 || argc == 3)
 	{
 		if (cubfile_open(&m, argc, argv) == 0)
 			return (0);
 		if (map_parsing(&m) == 0)
+		{
+			if (g_save != 0)
+				free(g_save);
+			g_save = 0;
 			return (0);
+		}
+		if (g_save != 0)
+			free(g_save);
+		g_save = 0;
 		cub_play(&m);
 	}
 	else

@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 04:10:35 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/26 16:42:24 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 05:35:07 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ static void	draw(t_info *info)
 		x = 0;
 		while (x < info->winsize_w)
 		{
-			info->img.data[y * info->winsize_w + x] = info->buf[y][x];
+			info->img.data[y * (info->img.size_l / 4) + x] = info->buf[y][x];
 			x++;
 		}
 		y++;
@@ -59,8 +59,19 @@ static int	main_loop(t_info *info)
 	return (0);
 }
 
-static void	kill_afplay(t_info *info)
+static void	all_free2(t_info *info)
 {
+	int i;
+
+	i = -1;
+	while (++i < 14)
+	{
+		if (info->texture[i].img != 0)
+			mlx_destroy_image(info->mlx, info->texture[i].img);
+	}
+	if (info->win != 0)
+		mlx_destroy_window(info->mlx, info->win);
+	free(info->mlx);
 	if (info->bonus_on == 1 && info->bitmap_check != 1)
 		system("killall afplay");
 }
@@ -84,14 +95,9 @@ void		all_free(t_info *info, t_map *m)
 		free(info->sprite_dist);
 	if (info->img.img != 0)
 		mlx_destroy_image(info->mlx, info->img.img);
-	i = -1;
-	while (++i < 14)
-		if (info->texture[i].img != 0)
-			mlx_destroy_image(info->mlx, info->texture[i].img);
-	if (info->win != 0)
-		mlx_destroy_window(info->mlx, info->win);
-	free(info->mlx);
-	kill_afplay(info);
+	if (info->img2.img != 0)
+		mlx_destroy_image(info->mlx, info->img2.img);
+	all_free2(info);
 }
 
 void		cub_play(t_map *m)
@@ -103,14 +109,17 @@ void		cub_play(t_map *m)
 	info_init2(&info);
 	if (buf_alloc_init(&info, m) == 0)
 	{
-		kill_afplay(&info);
+		if (m->bonus_on == 1 && m->bitmap_check != 1)
+			system("killall afplay");
 		return ;
 	}
 	if (sprite_alloc(&info, m) == 0)
 		return ;
 	imagedata_init(&info, m);
 	fill_sprite_info(&info);
-	win_img_init(&info, m);
+	win_init(&info, m);
+	img_init(&info, m, &info.img);
+	img_init(&info, m, &info.img2);
 	mlx_loop_hook(info.mlx, &main_loop, &info);
 	mlx_hook(info.win, X_EVENT_KEY_PRESS, 0, &key_press, &info);
 	mlx_hook(info.win, X_EVENT_KEY_RELEASE, 0, &key_release, &info);

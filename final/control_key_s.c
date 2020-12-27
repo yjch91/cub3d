@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 06:09:43 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 06:13:12 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 20:47:23 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,11 @@ static void	control_key_s_x(t_info *info, int n)
 		remove_sprite(info, (int)(info->pos_x - info->dir_x * info->movespeed),
 				(int)(info->pos_y));
 		info->pos_x -= info->dir_x * info->movespeed;
-		if (n == 4)
+		if (n == 4 && (info->hp + 10) <= 150)
 			info->hp += 10;
 		else if (n == 5)
 			info->hp -= 10;
-		else
+		else if (n == 6)
 			info->flag_weap = 1;
 	}
 }
@@ -43,11 +43,11 @@ static void	control_key_s_y(t_info *info, int n)
 		remove_sprite(info, (int)(info->pos_x),
 				(int)(info->pos_y - info->dir_y * info->movespeed));
 		info->pos_y -= info->dir_y * info->movespeed;
-		if (n == 4)
+		if (n == 4 && (info->hp + 10) <= 150)
 			info->hp += 10;
 		else if (n == 5)
 			info->hp -= 10;
-		else
+		else if (n == 6)
 			info->flag_weap = 1;
 	}
 }
