@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:51:58 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/28 01:56:49 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 03:17:15 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -109,6 +109,9 @@ int			info_check(t_map *m)
 		return (0);
 	}
 	if (texfile_open_check(m) == 0)
+	{
+		cubfile_info_free(m, 0);
 		return (0);
+	}
 	return (1);
 }

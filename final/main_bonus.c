@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 10:24:45 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 21:19:52 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 03:52:22 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,21 @@ static void	map_init(t_map *m)
 	g_save = 0;
 }
 
+static int	second_arg_check(t_map *m, char **argv)
+{
+	char	*c;
+
+	c = ft_strnstr(argv[2], "--save", 6);
+	if (c == 0 || ft_strlen(argv[2]) != 6)
+	{
+		write(1, "second argument is no \"--save\" Error\n", 37);
+		close(m->fd);
+		return (0);
+	}
+	m->bitmap_check = 1;
+	return (1);
+}
+
 static int	cubfile_open(t_map *m, int argc, char **argv)
 {
 	char	*c;
@@ -46,18 +61,13 @@ static int	cubfile_open(t_map *m, int argc, char **argv)
 	if ((m->fd = open(argv[1], O_RDONLY)) < 0)
 	{
 		perror(argv[1]);
+		write(1, "Error\n", 6);
 		return (0);
 	}
 	if (argc == 3)
 	{
-		c = ft_strnstr(argv[2], "--save", 6);
-		if (c == 0 || ft_strlen(argv[2]) != 6)
-		{
-			write(1, "second argument is no \"--save\" Error\n", 37);
-			close(m->fd);
+		if (second_arg_check(m, argv) == 0)
 			return (0);
-		}
-		m->bitmap_check = 1;
 	}
 	return (1);
 }
@@ -101,7 +111,7 @@ int			main(int argc, char **argv)
 			free(g_save);
 		g_save = 0;
 		if (m.bonus_on == 1 && m.bitmap_check == 0)
-			system("afplay ./sound/bgm.mp3 &");
+			system("afplay ./sound/bgm.mp3 -v 0.5 &");
 		cub_play(&m);
 	}
 	else
