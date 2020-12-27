@@ -4,9 +4,9 @@ SO ./textures/wall_s.xpm
 WE ./textures/wall_w.xpm
 EA ./textures/wall_e.xpm
 
-S ./textures/barrel.xpm
-F ./textures/wood.xpm
-C ./textures/greystone.xpm
+S ./textures/sprite1.xpm
+F ./textures/tex7.xpm
+C ./textures/tex4.xpm
 
 1111111111111111111111111111111111111111111111111111111
 1000000000000000000000000000000000000000000000000000001

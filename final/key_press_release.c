@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 06:50:02 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 07:12:37 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:34:22 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,14 @@ int			key_release(int key, t_info *info)
 		info->flag_w = 0;
 	if (key == K_S)
 		info->flag_s = 0;
-	if (key == K_D)
-		info->flag_d = 0;
 	if (key == K_A)
 		info->flag_a = 0;
+	if (key == K_D)
+		info->flag_d = 0;
+	if (key == K_LEFT)
+		info->flag_left = 0;
+	if (key == K_RIGHT)
+		info->flag_right = 0;
 	if (key == K_C && info->flag_c == 1)
 	{
 		info->flag_c = 0;
@@ -79,6 +83,10 @@ int			key_press(int key, t_info *info)
 		info->flag_d = 1;
 	else if (key == K_A)
 		info->flag_a = 1;
+	else if (key == K_LEFT)
+		info->flag_left = 1;
+	else if (key == K_RIGHT)
+		info->flag_right = 1;
 	else if (key == K_ESC)
 	{
 		all_free(info, &info->m);

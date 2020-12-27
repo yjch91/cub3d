@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 04:10:35 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 05:35:07 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:52:43 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,24 @@ static void	draw(t_info *info)
 	mlx_put_image_to_window(info->mlx, info->win, info->img.img, 0, 0);
 }
 
+static void	main_loop2(t_info *info)
+{
+	if (info->flag_w == 1)
+		control_key_w(info);
+	if (info->flag_s == 1)
+		control_key_s(info);
+	if (info->flag_d == 1)
+		control_key_d(info);
+	if (info->flag_a == 1)
+		control_key_a(info);
+	if (info->flag_left == 1)
+		control_key_left(info);
+	if (info->flag_right == 1)
+		control_key_right(info);
+	if (info->bitmap_check == 1)
+		save_bitmap(info);
+}
+
 static int	main_loop(t_info *info)
 {
 	ceilfloor_calc(info);
@@ -46,58 +64,8 @@ static int	main_loop(t_info *info)
 		if (info->flag_weap == 1)
 			control_weap(info);
 	}
-	if (info->flag_w == 1)
-		control_key_w(info);
-	if (info->flag_s == 1)
-		control_key_s(info);
-	if (info->flag_d == 1)
-		control_key_d(info);
-	if (info->flag_a == 1)
-		control_key_a(info);
-	if (info->bitmap_check == 1)
-		save_bitmap(info);
+	main_loop2(info);
 	return (0);
-}
-
-static void	all_free2(t_info *info)
-{
-	int i;
-
-	i = -1;
-	while (++i < 14)
-	{
-		if (info->texture[i].img != 0)
-			mlx_destroy_image(info->mlx, info->texture[i].img);
-	}
-	if (info->win != 0)
-		mlx_destroy_window(info->mlx, info->win);
-	free(info->mlx);
-	if (info->bonus_on == 1 && info->bitmap_check != 1)
-		system("killall afplay");
-}
-
-void		all_free(t_info *info, t_map *m)
-{
-	int i;
-
-	map_array_free(m, m->map_x, 1);
-	i = -1;
-	while (++i < info->winsize_h)
-		free(info->buf[i]);
-	free(info->buf);
-	if (info->sprite != 0)
-		free(info->sprite);
-	if (info->zbuffer != 0)
-		free(info->zbuffer);
-	if (info->sprite_order != 0)
-		free(info->sprite_order);
-	if (info->sprite_dist != 0)
-		free(info->sprite_dist);
-	if (info->img.img != 0)
-		mlx_destroy_image(info->mlx, info->img.img);
-	if (info->img2.img != 0)
-		mlx_destroy_image(info->mlx, info->img2.img);
-	all_free2(info);
 }
 
 void		cub_play(t_map *m)

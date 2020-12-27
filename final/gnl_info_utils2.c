@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:51:58 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 18:07:53 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:26:52 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,34 +19,6 @@ static int	info_empty_check(t_map *m)
 		return (0);
 	if (ft_strlen(m->size) == 0 || ft_strlen(m->floor) == 0 ||
 			ft_strlen(m->ceil) == 0 || ft_strlen(m->item) == 0)
-		return (0);
-	return (1);
-}
-
-static int	directory_check(t_map *m)
-{
-	char	*c;
-
-	c = ft_strnstr(m->north, "./textures", 10);
-	if (c == 0)
-		return (0);
-	c = ft_strnstr(m->south, "./textures", 10);
-	if (c == 0)
-		return (0);
-	c = ft_strnstr(m->west, "./textures", 10);
-	if (c == 0)
-		return (0);
-	c = ft_strnstr(m->east, "./textures", 10);
-	if (c == 0)
-		return (0);
-	c = ft_strnstr(m->item, "./textures", 10);
-	if (c == 0)
-		return (0);
-	c = ft_strnstr(m->floor, "./textures", 10);
-	if (m->floor_color == -1 && c == 0)
-		return (0);
-	c = ft_strnstr(m->ceil, "./textures", 10);
-	if (m->ceil_color == -1 && c == 0)
 		return (0);
 	return (1);
 }
@@ -79,30 +51,39 @@ static int	xpmfile_check(t_map *m)
 	return (1);
 }
 
-static int	file_space_check(t_map *m)
+static int	texfile_open(char *path)
 {
-	char	*c;
+	int	fd;
 
-	c = ft_strnstr(m->north, " ", ft_strlen(m->north));
-	if (c != 0)
+	if ((fd = open(path, O_RDONLY)) < 0)
+	{
+		perror(path);
+		write("Error\n", 6);
 		return (0);
-	c = ft_strnstr(m->south, " ", ft_strlen(m->south));
-	if (c != 0)
+	}
+	if (close(fd) < 0)
+	{
+		write(1, "close Error\n", 12);
 		return (0);
-	c = ft_strnstr(m->west, " ", ft_strlen(m->west));
-	if (c != 0)
+	}
+	return (1);
+}
+
+static int	texfile_open_check(t_map *m)
+{
+	if (tefile_open(m->north) == 0)
 		return (0);
-	c = ft_strnstr(m->east, " ", ft_strlen(m->east));
-	if (c != 0)
+	if (texfile_open(m->south) == 0)
 		return (0);
-	c = ft_strnstr(m->item, " ", ft_strlen(m->item));
-	if (c != 0)
+	if (texfile_open(m->west) == 0)
 		return (0);
-	c = ft_strnstr(m->floor, " ", ft_strlen(m->floor));
-	if (m->floor_color == -1 && c != 0)
+	if (texfile_open(m->east) == 0)
 		return (0);
-	c = ft_strnstr(m->ceil, " ", ft_strlen(m->ceil));
-	if (m->ceil_color == -1 && c != 0)
+	if (texfile_open(m->item) == 0)
+		return (0);
+	if (m->floor_color == -1 && texfile_open(m->floor) == 0)
+		return (0);
+	if (m->floor_color == -1 && texfile_open(m->ceil) == 0)
 		return (0);
 	return (1);
 }
@@ -121,12 +102,13 @@ int			info_check(t_map *m)
 		cubfile_info_free(m, 0);
 		return (0);
 	}
-	if (info_empty_check(m) == 0 || xpmfile_check(m) == 0 ||
-		directory_check(m) == 0 || file_space_check(m) == 0)
+	if (info_empty_check(m) == 0 || xpmfile_check(m) == 0)
 	{
-		write(1, "tex info empty or not .xpm or wrong directory Error\n", 52);
+		write(1, "tex info empty or not .xpm or wrong file Error\n", 47);
 		cubfile_info_free(m, 0);
 		return (0);
 	}
+	if (texfile_open_check(m) == 0)
+		return (0);
 	return (1);
 }

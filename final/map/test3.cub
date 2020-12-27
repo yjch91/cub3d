@@ -4,7 +4,7 @@ SO ./textures/wall_s.xpm
 WE ./textures/wall_w.xpm
 EA ./textures/wall_e.xpm
 
-S ./textures/barrel.xpm
+S ./textures/sprite1.xpm
 F 4, 255, 22
 C 255,255,255 
 

@@ -1,11 +1,11 @@
 R 567 678
-NO ./textures/bluestone.xpm
-SO ./textures/redbrick.xpm
-WE ./textures/greystone.xpm
-EA ./textures/mossy.xpm
+NO ./textures/tex1.xpm
+SO ./textures/tex7.xpm
+WE ./textures/tex4.xpm
+EA ./textures/tex5.xpm
 
-S ./textures/barrel.xpm
-F ./textures/wood.xpm
+S ./textures/sprite1.xpm
+F ./textures/tex8.xpm
 C ./textures/skybox.xpm
 
 11111111111111111111

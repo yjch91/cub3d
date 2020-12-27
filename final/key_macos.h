@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 10:39:42 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 22:45:49 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:29:43 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,5 +42,7 @@
 # define K_Z 6
 # define K_SP 49
 # define K_ESC 53
+# define K_LEFT 123
+# define K_RIGHT 124
 
 #endif

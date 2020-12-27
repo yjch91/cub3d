@@ -3,7 +3,7 @@ NO ./textures/robot_n.xpm
 SO ./textures/robot_s.xpm 
 WE ./textures/robot_w.xpm
 EA ./textures/robot_e.xpm
-S ./textures/barrel.xpm
+S ./textures/sprite1.xpm
 F ./textures/robot_f.xpm
 C ./textures/robot_c.xpm
 

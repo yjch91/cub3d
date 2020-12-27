@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 07:51:44 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 22:24:48 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:35:06 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,8 @@ void		info_init2(t_info *info)
 	info->flag_a = 0;
 	info->flag_s = 0;
 	info->flag_d = 0;
+	info->flag_left = 0;
+	info->flag_right = 0;
 	info->flag_c = 0;
 	info->flag_sp = 0;
 	info->flag_sky = 0;

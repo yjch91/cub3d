@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 03:40:50 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 22:45:30 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:45:05 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,6 +164,8 @@ typedef struct	s_info
 	int			flag_a;
 	int			flag_s;
 	int			flag_d;
+	int			flag_left;
+	int			flag_right;
 	int			flag_c;
 	int			flag_sp;
 	int			flag_sky;
@@ -197,6 +199,8 @@ void			control_key_w(t_info *info);
 void			control_key_s(t_info *info);
 void			control_key_a(t_info *info);
 void			control_key_d(t_info *info);
+void			control_key_left(t_info *info);
+void			control_key_right(t_info *info);
 void			save_bitmap(t_info *info);
 void			control_jump(t_info *info);
 int				key_press(int key, t_info *info);

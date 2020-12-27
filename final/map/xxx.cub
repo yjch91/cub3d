@@ -1,11 +1,11 @@
 R 400 300
-NO ./textures/eagle.xpm
-SO ./textures/colorstone.xpm
-WE ./textures/redbrick.xpm
-EA ./textures/mossy.xpm
+NO ./textures/tex3.xpm
+SO ./textures/tex2.xpm
+WE ./textures/tex7.xpm
+EA ./textures/tex5.xpm
 
-S ./textures/barrel.xpm
-F ./textures/wood.xpm
+S ./textures/sprite1.xpm
+F ./textures/tex8.xpm
 C ./textures/skybox.xpm
 
 1111111111111111111111111111111111111111111111111111111

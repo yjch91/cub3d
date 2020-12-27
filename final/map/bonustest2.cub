@@ -1,12 +1,12 @@
 R 400 400
-NO ./textures/bluestone.xpm
-SO ./textures/redbrick.xpm
-WE ./textures/greystone.xpm
-EA ./textures/mossy.xpm
+NO ./textures/tex1.xpm
+SO ./textures/tex7.xpm
+WE ./textures/tex4.xpm
+EA ./textures/tex5.xpm
 
-S ./textures/barrel.xpm
-F ./textures/wood.xpm
-C ./textures/bluestone.xpm
+S ./textures/sprite1.xpm
+F ./textures/tex8.xpm
+C ./textures/tex6.xpm
 
 11111111111111111111
 10000044444444444441
