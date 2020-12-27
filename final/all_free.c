@@ -6,9 +6,11 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/28 01:37:37 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/28 01:38:36 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:57:12 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#include "cub3d.h"
 
 static void	all_free2(t_info *info)
 {

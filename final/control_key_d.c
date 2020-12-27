@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/28 01:44:04 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/28 01:44:35 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:57:57 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,8 @@ void		control_key_d(t_info *info)
 
 	n = info->map[(int)(info->pos_x - info->dir_x * info->movespeed)]
 		[(int)(info->pos_y)];
-	control_key_s_x(info, n);
+	control_key_d_x(info, n);
 	n = info->map[(int)(info->pos_x)]
 		[(int)(info->pos_y - info->dir_y * info->movespeed)];
-	control_key_s_y(info, n);
+	control_key_d_y(info, n);
 }

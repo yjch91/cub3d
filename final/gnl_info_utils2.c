@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 09:51:58 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/28 01:26:52 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/28 01:56:49 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ static int	texfile_open(char *path)
 	if ((fd = open(path, O_RDONLY)) < 0)
 	{
 		perror(path);
-		write("Error\n", 6);
+		write(1, "Error\n", 6);
 		return (0);
 	}
 	if (close(fd) < 0)
@@ -71,7 +71,7 @@ static int	texfile_open(char *path)
 
 static int	texfile_open_check(t_map *m)
 {
-	if (tefile_open(m->north) == 0)
+	if (texfile_open(m->north) == 0)
 		return (0);
 	if (texfile_open(m->south) == 0)
 		return (0);
