@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 03:40:50 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 22:19:36 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 22:45:30 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,6 @@
 # define CUB3D_H
 
 # include "minilibx_mms/mlx.h"
-# include "mini_opengl/mlx.h"
 # include "key_macos.h"
 # include "bitmap.h"
 # include <stdlib.h>
