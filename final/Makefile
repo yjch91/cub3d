@@ -35,8 +35,8 @@ ${LIBMMS}:
 		$(MAKE) -C ./minilibx_mms
 
 ${NAME}:	${OBJS} ${MAINOBJS} ${LIBMMS}
-		cp ./minilibx_mms/libmlx.dylib ./
-		${CC} -L. -lmlx ${CFLAGS_MLX} ${OBJS} ${MAINOBJS} -o ${NAME}
+			cp ./minilibx_mms/libmlx.dylib ./
+			${CC} -L. -lmlx ${CFLAGS_MLX} ${OBJS} ${MAINOBJS} -o ${NAME}
 			
 clean:
 		rm -f ${OBJS} ${MAINOBJS} ${BMAINOBJS} ${LIBMMS}
@@ -47,7 +47,7 @@ fclean:	clean
 
 re:		fclean ${NAME}
 
-bonus:		${OBJS} ${BMAINOBJS} ${LIBMMS}
+bonus:	${OBJS} ${BMAINOBJS} ${LIBMMS}
 		cp ./minilibx_mms/libmlx.dylib ./
 		${CC} -L. -lmlx ${CFLAGS_MLX} ${OBJS} ${BMAINOBJS} -o ${NAME}
 

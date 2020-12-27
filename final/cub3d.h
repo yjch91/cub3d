@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 03:40:50 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 21:21:07 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 22:19:36 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,7 +180,7 @@ typedef struct	s_info
 }				t_info;
 
 int				g_map_empty;
-static char			*g_save;
+static char		*g_save;
 int				get_next_line(int fd, char **line);
 char			*ft_strdup(const char *s1);
 int				ft_strlen(const char *s);

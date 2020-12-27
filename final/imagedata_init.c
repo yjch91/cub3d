@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:57:39 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 04:09:24 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 22:23:02 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ static void	get_imagedata(t_info *info, char *path, int n)
 					&info->texture[n].size_l,
 					&info->texture[n].endian)) == 0)
 	{
-		write(1, "error : mlx_get_data_addr result = NULL\n", 39);
+		write(1, "mlx_get_data_addr result = NULL Error\n", 38);
 		all_free(info, &info->m);
 		exit(0);
 	}
@@ -72,14 +72,14 @@ void		img_init(t_info *info, t_map *m, t_img *img)
 					info->mlx, info->winsize_w, info->winsize_h)) == 0)
 	{
 		all_free(info, m);
-		write(1, "error : mlx_new_image return = NULL\n", 36);
+		write(1, "mlx_new_image return = NULL Error\n", 34);
 		exit(0);
 	}
 	if ((img->data = (int *)mlx_get_data_addr(img->img,
 					&img->bpp, &img->size_l, &img->endian)) == 0)
 	{
 		all_free(info, m);
-		write(1, "error : mlx_get_data_addr return = NULL\n", 40);
+		write(1, "mlx_get_data_addr return = NULL Error\n", 38);
 		exit(0);
 	}
 }

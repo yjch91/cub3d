@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 08:04:23 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 08:10:07 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 22:25:38 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 static int	sprite_alloc_fail(t_info *info, t_map *m)
 {
 	all_free(info, m);
-	write(1, "malloc allocation fail\n", 23);
+	write(1, "malloc allocation fail Error\n", 29);
 	return (0);
 }
 

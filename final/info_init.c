@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 07:51:44 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 03:27:53 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 22:24:48 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ void		info_init(t_info *info, t_map *m)
 {
 	if ((info->mlx = mlx_init()) == 0)
 	{
-		write(1, "error : mlx_init result = NULL\n", 31);
+		write(1, "mlx_init result = NULL Error\n", 29);
 		map_array_free(m, m->map_x, 1);
 		if (m->bonus_on == 1 && m->bitmap_check != 1)
 			system("killall afplay");
@@ -119,7 +119,7 @@ void		win_init(t_info *info, t_map *m)
 					info->mlx, info->winsize_w, info->winsize_h, "cub3D")) == 0)
 	{
 		all_free(info, m);
-		write(1, "error : mlx_new_window return = NULL\n", 37);
+		write(1, "mlx_new_window return = NULL Error\n", 35);
 		exit(0);
 	}
 }
