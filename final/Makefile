@@ -26,35 +26,29 @@ NAME = cub3D
 
 LIBMMS = libmlx.dylib
 
-LIBOPENGL = libmlx.a
-
-.c.o:	${LIBMMS} ${LIBOPENGL}
+.c.o:	${LIBMMS}
 		${CC} ${CFLAGS} -c -I . $< -o $(<:.c=.o)
 
 all:	${NAME}
 
 ${LIBMMS}:
-			$(MAKE) -C ./minilibx_mms
+		$(MAKE) -C ./minilibx_mms
 
-${LIBOPENGL}:
-			${MAKE} -C ./mini_opengl
-
-${NAME}:	${OBJS} ${MAINOBJS} ${LIBMMS} ${LIBOPENGL}
-			cp ./minilibx_mms/libmlx.dylib ./
-			${CC} -L./mini_opengl -lmlx ${CFLAGS_MLX} ${OBJS} ${MAINOBJS} ${LIBMMS} -o ${NAME}
+${NAME}:	${OBJS} ${MAINOBJS} ${LIBMMS}
+		cp ./minilibx_mms/libmlx.dylib ./
+		${CC} -L. -lmlx ${CFLAGS_MLX} ${OBJS} ${MAINOBJS} -o ${NAME}
 			
 clean:
-		rm -f ${OBJS} ${MAINOBJS} ${BMAINOBJS} ${LIBMMS} ${LIBOPENGL}
+		rm -f ${OBJS} ${MAINOBJS} ${BMAINOBJS} ${LIBMMS}
 
 fclean:	clean
 		rm -f ${NAME}
 		${MAKE} -C ./minilibx_mms clean
-		${MAKE} -C ./mini_opengl clean
 
 re:		fclean ${NAME}
 
-bonus:	${OBJS} ${BMAINOBJS} ${LIBMMS} ${LIBOPENGL}
+bonus:		${OBJS} ${BMAINOBJS} ${LIBMMS}
 		cp ./minilibx_mms/libmlx.dylib ./
-		${CC} -L./mini_opengl -lmlx ${CFLAGS_MLX} ${OBJS} ${BMAINOBJS} ${LIBMMS} -o ${NAME}
+		${CC} -L. -lmlx ${CFLAGS_MLX} ${OBJS} ${BMAINOBJS} -o ${NAME}
 
 .PHONY:	all clean fclean re

@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 10:24:45 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 06:43:36 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 21:19:52 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ static void	map_init(t_map *m)
 	m->lst = 0;
 	m->bitmap_check = 0;
 	g_map_empty = -1;
+	g_save = 0;
 }
 
 static int	cubfile_open(t_map *m, int argc, char **argv)
@@ -85,7 +86,6 @@ int			main(int argc, char **argv)
 
 	map_init(&m);
 	m.bonus_on = 1;
-	g_save = 0;
 	if (argc == 2 || argc == 3)
 	{
 		if (cubfile_open(&m, argc, argv) == 0)
@@ -94,10 +94,12 @@ int			main(int argc, char **argv)
 		{
 			if (g_save != 0)
 				free(g_save);
+			g_save = 0;
 			return (0);
 		}
 		if (g_save != 0)
 			free(g_save);
+		g_save = 0;
 		if (m.bonus_on == 1 && m.bitmap_check == 0)
 			system("afplay ./sound/bgm.mp3 &");
 		cub_play(&m);

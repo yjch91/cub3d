@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 03:40:50 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/12 10:12:51 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 21:21:07 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@
 # include <stdio.h>
 # include <fcntl.h>
 # include <math.h>
-# define BUFFER_SIZE	100
+# define BUFFER_SIZE	1
 # define X_EVENT_KEY_PRESS	2
 # define X_EVENT_KEY_RELEASE	3
 # define X_EVENT_MOTION_NOTIFY	6
@@ -85,6 +85,7 @@ typedef struct	s_info
 	void		*mlx;
 	void		*win;
 	t_img		img;
+	t_img		img2;
 	int			**buf;
 	t_img		texture[14];
 	t_map		m;
@@ -179,9 +180,9 @@ typedef struct	s_info
 }				t_info;
 
 int				g_map_empty;
+static char			*g_save;
 int				get_next_line(int fd, char **line);
 char			*ft_strdup(const char *s1);
-char			*ft_strdup_size(const char *s1, int left, int right);
 int				ft_strlen(const char *s);
 char			*ft_strjoin(char const *s1, char const *s2);
 char			*ft_strnstr(const char *haystack,
@@ -208,7 +209,8 @@ void			info_init(t_info *info, t_map *m);
 void			winsize_init(t_info *info, t_map *m);
 void			info_init2(t_info *info);
 void			imagedata_init(t_info *info, t_map *m);
-void			win_img_init(t_info *info, t_map *m);
+void			win_init(t_info *info, t_map *m);
+void			img_init(t_info *info, t_map *m, t_img *img);
 void			fill_sprite_info(t_info *info);
 int				sprite_alloc(t_info *info, t_map *m);
 int				buf_alloc_init(t_info *info, t_map *m);

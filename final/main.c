@@ -6,7 +6,7 @@
 /*   By: jayun <jayun@student.42seoul.kr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/12 10:24:35 by jayun             #+#    #+#             */
-/*   Updated: 2020/12/27 16:58:27 by jayun            ###   ########.fr       */
+/*   Updated: 2020/12/27 21:20:17 by jayun            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ static void	map_init(t_map *m)
 	m->lst = 0;
 	m->bitmap_check = 0;
 	g_map_empty = -1;
+	g_save = 0;
 }
 
 static int	cubfile_open(t_map *m, int argc, char **argv)
@@ -85,7 +86,6 @@ int			main(int argc, char **argv)
 
 	map_init(&m);
 	m.bonus_on = 0;
-	g_save = 0;
 	if (argc == 2 || argc == 3)
 	{
 		if (cubfile_open(&m, argc, argv) == 0)
